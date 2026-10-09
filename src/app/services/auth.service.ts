@@ -4,39 +4,39 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface LoginRequest {
-  username: string;
-  password: string;
+    username: string;
+    password: string;
 }
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8081/api/auth';
+    private readonly apiUrl = 'http://localhost:8081/api/auth';
 
-  constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) { }
 
-  login(data: LoginRequest): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/login`,
-      data,
-      { withCredentials: true }
-    );
-  }
+    login(data: LoginRequest): Observable<any> {
+        return this.http.post(
+            `${this.apiUrl}/login`,
+            data,
+            { withCredentials: true }
+        );
+    }
 
-  getMe(): Observable<any> {
-    return this.http.get(
-      `${this.apiUrl}/me`,
-      { withCredentials: true }
-    );
-  }
+    getMe(): Observable<any> {
+        return this.http.get(
+            `${this.apiUrl}/me`,
+            { withCredentials: true }
+        );
+    }
 
-  logout(): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/logout`,
-      {},
-      { withCredentials: true }
-    );
-  }
+    logout(): Observable<any> {
+        return this.http.post(
+            `${this.apiUrl}/logout`,
+            {},
+            { withCredentials: true }
+        );
+    }
 }
 
