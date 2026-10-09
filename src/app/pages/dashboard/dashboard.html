@@ -92,7 +92,7 @@
             <span class="stat-caption">Tất cả công việc</span>
           </div>
           <div class="stat-value">
-            {{ getValue(summary, 'totalTasks', 'total', 'totalTask') }}
+            {{ summary?.totalTasks ?? 0 }}
           </div>
           <div class="stat-description">Tổng số task trong hệ thống</div>
         </article>
@@ -103,7 +103,7 @@
             <span class="stat-caption">Đang thực hiện</span>
           </div>
           <div class="stat-value">
-            {{ getValue(summary, 'inProgress', 'inProgressTasks', 'totalInProgress') }}
+            {{ summary?.inProgressTasks ?? 0 }}
           </div>
           <div class="stat-description">Công việc đang được xử lý</div>
         </article>
@@ -114,7 +114,7 @@
             <span class="stat-caption">Đã hoàn thành</span>
           </div>
           <div class="stat-value">
-            {{ getValue(summary, 'completed', 'completedTasks', 'totalCompleted') }}
+            {{ summary?.completedTasks ?? 0 }}
           </div>
           <div class="stat-description">Công việc đã hoàn tất</div>
         </article>
@@ -125,7 +125,7 @@
             <span class="stat-caption">Quá hạn</span>
           </div>
           <div class="stat-value">
-            {{ getValue(summary, 'overdue', 'overdueTasks', 'totalOverdue') }}
+            {{ summary?.overdueTasks ?? 0 }}
           </div>
           <div class="stat-description">Cần được chú ý xử lý</div>
         </article>
@@ -142,28 +142,32 @@
             </div>
           </div>
 
-          <div class="status-list" *ngIf="statusEntries.length > 0">
-            <div class="status-row" *ngFor="let item of statusEntries">
-              <div class="status-row-heading">
-                <span>{{ statusLabel(item.label) }}</span>
-                <strong>{{ item.value }}</strong>
-              </div>
+          <ng-container *ngIf="taskStatus?.statusCounts as statusCounts">
+            <div class="status-list" *ngIf="(statusCounts | keyvalue).length > 0">
+              <div class="status-row" *ngFor="let item of statusCounts | keyvalue">
+                <div class="status-row-heading">
+                  <span>{{ statusLabel(item.key) }}</span>
+                  <strong>{{ item.value }}</strong>
+                </div>
 
-              <div class="progress-track">
-                <div
-                  class="progress-fill"
-                  [ngClass]="statusClass(item.label)"
-                  [style.width.%]="
-                    getValue(summary, 'totalTasks', 'total', 'totalTask') > 0
-                      ? (item.value / getValue(summary, 'totalTasks', 'total', 'totalTask')) * 100
-                      : 0
-                  "
-                ></div>
+                <div class="progress-track">
+                  <div
+                    class="progress-fill"
+                    [ngClass]="statusClass(item.key)"
+                    [style.width.%]="summary?.totalTasks > 0
+                      ? (item.value / summary.totalTasks) * 100
+                      : 0"
+                  ></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="empty-state" *ngIf="statusEntries.length === 0">
+            <div class="empty-state" *ngIf="(statusCounts | keyvalue).length === 0">
+              Chưa có dữ liệu trạng thái công việc.
+            </div>
+          </ng-container>
+
+          <div class="empty-state" *ngIf="!taskStatus?.statusCounts">
             Chưa có dữ liệu trạng thái công việc.
           </div>
         </article>
