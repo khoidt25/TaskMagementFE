@@ -1,0 +1,333 @@
+
+<div class="dashboard-layout">
+
+  <!-- MENU TRÁI -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">T</div>
+      <span>Team FT</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="menu-icon">▦</span>
+        <span>Tổng quan</span>
+      </a>
+      <a routerLink="/tasks" routerLinkActive="active">
+        <span class="menu-icon">☷</span>
+        <span>Công việc</span>
+      </a>
+      <a routerLink="/projects" routerLinkActive="active">
+        <span class="menu-icon">▣</span>
+        <span>Dự án</span>
+      </a>
+      <a routerLink="/users" routerLinkActive="active">
+        <span class="menu-icon">♙</span>
+        <span>Thành viên</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="profile-avatar">A</div>
+      <div class="profile-info">
+        <strong>{{ username }}</strong>
+        <span>Administrator</span>
+      </div>
+      <button class="logout-button" (click)="logout()" title="Đăng xuất">
+        ↪
+      </button>
+    </div>
+  </aside>
+
+  <!-- NỘI DUNG DASHBOARD -->
+  <main class="main-content">
+
+    <header class="topbar">
+      <div>
+        <div class="breadcrumb">Workspace / Dashboard</div>
+        <h1>Tổng quan</h1>
+        <p class="page-subtitle">Theo dõi công việc và tiến độ của nhóm.</p>
+      </div>
+
+      <div class="topbar-actions">
+        <span class="today">{{ currentDate | date:'dd/MM/yyyy' }}</span>
+        <button class="refresh-button" (click)="loadDashboard()">
+          ↻ Làm mới
+        </button>
+      </div>
+    </header>
+
+    <div class="error-banner" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <span class="spinner"></span>
+      Đang tải dữ liệu...
+    </div>
+
+    <ng-container *ngIf="!loading">
+
+      <!-- BANNER -->
+      <section class="welcome-banner">
+        <div class="welcome-content">
+          <span class="welcome-label">TEAMTASK WORKSPACE</span>
+          <h2>Xin chào, {{ username }}!</h2>
+          <a routerLink="/tasks" class="primary-button">
+            Xem công việc <span>→</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- KPI -->
+      <section class="section-heading">
+        <div>
+          <h2>Tổng quan công việc</h2>
+          <p>Các chỉ số được cập nhật từ hệ thống</p>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-icon blue">▦</span>
+            <span class="stat-tag">Tất cả</span>
+          </div>
+          <p class="stat-label">Tổng công việc</p>
+          <strong class="stat-value">
+            {{ getValue(summary, 'totalTasks', 'total') }}
+          </strong>
+          <div class="stat-footer">Tổng số task trong hệ thống</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-icon orange">◷</span>
+            <span class="stat-tag">Đang xử lý</span>
+          </div>
+          <p class="stat-label">Đang thực hiện</p>
+          <strong class="stat-value">
+            {{ getValue(summary, 'inProgressTasks', 'inProgress') }}
+          </strong>
+          <div class="stat-footer">Công việc đang triển khai</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-icon green">✓</span>
+            <span class="stat-tag">Hoàn tất</span>
+          </div>
+          <p class="stat-label">Đã hoàn thành</p>
+          <strong class="stat-value">
+            {{ getValue(summary, 'completedTasks', 'completed') }}
+          </strong>
+          <div class="stat-footer">Công việc đã hoàn tất</div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-icon red">!</span>
+            <span class="stat-tag">Cần chú ý</span>
+          </div>
+          <p class="stat-label">Công việc quá hạn</p>
+          <strong class="stat-value">
+            {{ getValue(summary, 'overdueTasks', 'overdue') }}
+          </strong>
+          <div class="stat-footer">Công việc cần ưu tiên xử lý</div>
+        </article>
+
+      </section>
+
+      <!-- BIỂU ĐỒ TRẠNG THÁI -->
+      <section class="dashboard-grid">
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Trạng thái công việc</h2>
+              <p>Phân bổ task theo trạng thái hiện tại</p>
+            </div>
+            <span class="panel-icon">▤</span>
+          </div>
+
+          <div class="status-list" *ngIf="statusEntries.length > 0">
+            <div class="status-item" *ngFor="let item of statusEntries">
+              <div class="status-heading">
+                <span>
+                  <i class="status-dot" [ngClass]="statusClass(item.label)"></i>
+                  {{ statusLabel(item.label) }}
+                </span>
+                <strong>{{ item.value }}</strong>
+              </div>
+              <div class="progress-track">
+                <div
+                  class="progress-fill"
+                  [ngClass]="statusClass(item.label)"
+                  [style.width.%]="getValue(taskStatus, 'totalTasks') > 0
+                    ? (item.value / getValue(taskStatus, 'totalTasks')) * 100
+                    : 0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="statusEntries.length === 0">
+            Chưa có dữ liệu trạng thái.
+          </div>
+        </article>
+
+        <!-- PHẦN VIỆC CÁ NHÂN -->
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Phần việc của tôi</h2>
+              <p>Thống kê nhiệm vụ được giao cho bạn</p>
+            </div>
+            <span class="panel-icon">♙</span>
+          </div>
+
+          <ng-container *ngIf="mySummary; else noMyTasks">
+            <div class="personal-total">
+              <div>
+                <span>Tổng phần việc</span>
+                <strong>
+                  {{ getValue(mySummary, 'totalTasks', 'totalAssignments', 'total') }}
+                </strong>
+              </div>
+              <div class="personal-total-icon">☷</div>
+            </div>
+
+            <div class="personal-row">
+              <span>Đang thực hiện</span>
+              <strong>
+                {{ getValue(mySummary, 'inProgressTasks', 'inProgress', 'inProgressAssignments') }}
+              </strong>
+            </div>
+            <div class="personal-row">
+              <span>Đã hoàn thành</span>
+              <strong class="green-text">
+                {{ getValue(mySummary, 'completedTasks', 'completed', 'completedAssignments') }}
+              </strong>
+            </div>
+            <div class="personal-row">
+              <span>Quá hạn</span>
+              <strong class="red-text">
+                {{ getValue(mySummary, 'overdueTasks', 'overdue', 'overdueAssignments') }}
+              </strong>
+            </div>
+
+            <div class="personal-progress">
+              <div class="status-heading">
+                <span>Tiến độ trung bình</span>
+                <strong>{{ getValue(mySummary, 'averageProgress', 'avgProgress') }}%</strong>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill completed"
+                     [style.width.%]="getProgress(mySummary)"></div>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #noMyTasks>
+            <div class="empty-state">
+              Chưa có dữ liệu phần việc cá nhân.
+            </div>
+          </ng-template>
+        </article>
+
+      </section>
+
+      <!-- DỰ ÁN -->
+      <section class="panel project-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Tiến độ dự án</h2>
+            <p>Tổng hợp số lượng công việc theo dự án</p>
+          </div>
+          <a routerLink="/projects" class="text-link">Xem dự án →</a>
+        </div>
+
+        <div class="table-wrapper" *ngIf="projectSummary.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Dự án</th>
+                <th>Tổng task</th>
+                <th>Đang làm</th>
+                <th>Hoàn thành</th>
+                <th>Quá hạn</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let project of projectSummary">
+                <td>
+                  <div class="project-cell">
+                    <span class="project-avatar">{{ projectName(project).charAt(0) }}</span>
+                    <strong>{{ projectName(project) }}</strong>
+                  </div>
+                </td>
+                <td>{{ getValue(project, 'totalTasks', 'total') }}</td>
+                <td>{{ getValue(project, 'inProgressTasks', 'inProgress') }}</td>
+                <td>
+                  <span class="completed-number">
+                    {{ getValue(project, 'completedTasks', 'completed') }}
+                  </span>
+                </td>
+                <td>
+                  <span class="overdue-number">
+                    {{ getValue(project, 'overdueTasks', 'overdue') }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" *ngIf="projectSummary.length === 0">
+          Chưa có dữ liệu dự án.
+        </div>
+      </section>
+
+      <!-- CÔNG VIỆC QUÁ HẠN -->
+      <section class="panel overdue-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Công việc quá hạn</h2>
+            <p>Danh sách task cần ưu tiên xử lý</p>
+          </div>
+          <span class="overdue-badge">{{ overdueTasks.length }} task</span>
+        </div>
+
+        <div class="overdue-list" *ngIf="overdueTasks.length > 0">
+          <div class="overdue-item" *ngFor="let task of overdueTasks">
+            <span class="overdue-indicator"></span>
+            <div class="overdue-info">
+              <strong>{{ taskName(task) }}</strong>
+              <span>
+                Hạn hoàn thành:
+                {{ task.deadline ? (task.deadline | date:'dd/MM/yyyy') : 'Chưa có' }}
+              </span>
+            </div>
+            <span class="task-status" [ngClass]="statusClass(task.status)">
+              {{ statusLabel(task.status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="empty-state success-empty" *ngIf="overdueTasks.length === 0">
+          <span class="success-icon">✓</span>
+          <strong>Tuyệt vời! Không có công việc quá hạn.</strong>
+          <p>Các công việc đều đang trong tầm kiểm soát.</p>
+        </div>
+      </section>
+
+    </ng-container>
+
+    <footer class="page-footer">
+      <span>TeamTask Management System</span>
+      <span>© {{ currentDate | date:'yyyy' }}</span>
+    </footer>
+
+  </main>
+</div>

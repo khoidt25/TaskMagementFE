@@ -1,0 +1,79 @@
+<div class="login-page">
+  <div class="login-card">
+
+    <div class="brand">
+      <div class="brand-icon">T</div>
+      <span>Team FT</span>
+    </div>
+
+    <div class="login-heading">
+      <h1>Chào mừng trở lại</h1>
+      <p>Đăng nhập để quản lý công việc của bạn</p>
+    </div>
+
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+
+      <div class="form-group">
+        <label for="username">Tên đăng nhập</label>
+
+        <input
+          id="username"
+          name="username"
+          type="text"
+          [(ngModel)]="username"
+          placeholder="Nhập tên đăng nhập"
+          autocomplete="username"
+          required
+          [disabled]="loading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+
+        <div class="password-wrapper">
+          <input
+            id="password"
+            name="password"
+            [type]="showPassword ? 'text' : 'password'"
+            [(ngModel)]="password"
+            placeholder="Nhập mật khẩu"
+            autocomplete="current-password"
+            required
+            [disabled]="loading"
+          />
+
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+          >
+            {{ showPassword ? 'Ẩn' : 'Hiện' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button
+        type="submit"
+        class="login-button"
+        [disabled]="loading || !loginForm.valid"
+      >
+        <span *ngIf="!loading">Đăng nhập</span>
+        <span *ngIf="loading">Đang đăng nhập...</span>
+      </button>
+
+    </form>
+
+    <div class="login-footer">
+      TeamTask Management System
+    </div>
+
+  </div>
+</div>
+
+

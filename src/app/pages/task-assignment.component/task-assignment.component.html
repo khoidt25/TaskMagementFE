@@ -1,0 +1,761 @@
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">T</div>
+      <div>
+        <div class="brand-name">Team FT</div>
+      </div>
+    </div>
+
+    <nav class="navigation">
+      <a routerLink="/dashboard" class="nav-item">
+        <span class="nav-icon">▦</span>
+        <span>Tổng quan</span>
+      </a>
+
+      <a routerLink="/tasks" class="nav-item active">
+        <span class="nav-icon">☷</span>
+        <span>Công việc</span>
+        <span class="nav-count">{{ totalTasks }}</span>
+      </a>
+
+      <a routerLink="/projects" class="nav-item">
+        <span class="nav-icon">▤</span>
+        <span>Dự án</span>
+      </a>
+
+      <a routerLink="/users" class="nav-item">
+        <span class="nav-icon">♙</span>
+        <span>Thành viên</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="profile-avatar">A</div>
+      <div class="profile-info">
+        <strong>{{ username }}</strong>
+        <span>Administrator</span>
+      </div>
+      <button
+        type="button"
+        class="logout-button"
+        (click)="logout()"
+        title="Đăng xuất">
+        ↪
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span>Workspace</span>
+        <span class="breadcrumb-separator">/</span>
+        <strong>Phân công công việc</strong>
+      </div>
+
+      <div class="topbar-actions">
+        <button
+          type="button"
+          class="icon-button"
+          title="Tải lại dữ liệu"
+          (click)="refresh()">
+          ↻
+        </button>
+        <div class="user-avatar">K</div>
+      </div>
+    </header>
+
+    <section class="page-content">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">WORK MANAGEMENT</div>
+          <h1>Phân công công việc</h1>
+          <p>
+            Quản lý người phụ trách, tiến độ và thời hạn
+            của từng công việc.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="startNewAssignment()">
+          <span>＋</span> Phân công mới
+        </button>
+      </div>
+
+      <div class="message error-message" *ngIf="errorMessage">
+        <span>!</span>
+        <span>{{ errorMessage }}</span>
+        <button
+          type="button"
+          (click)="errorMessage = ''"
+          aria-label="Đóng thông báo lỗi">
+          ×
+        </button>
+      </div>
+
+      <div class="message success-message" *ngIf="successMessage">
+        <span>✓</span>
+        <span>{{ successMessage }}</span>
+        <button
+          type="button"
+          (click)="successMessage = ''"
+          aria-label="Đóng thông báo thành công">
+          ×
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue-icon">▤</div>
+          <div class="stat-info">
+            <span>Tổng công việc</span>
+            <strong>{{ totalTasks }}</strong>
+            <small>Khớp với kết quả hiện tại</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple-icon">♙</div>
+          <div class="stat-info">
+            <span>Thành viên được giao</span>
+            <strong>{{ members.length }}</strong>
+            <small>Trong công việc đang chọn</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange-icon">◷</div>
+          <div class="stat-info">
+            <span>Đang thực hiện</span>
+            <strong>{{ membersInProgress }}</strong>
+            <small>Phân công đang xử lý</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green-icon">✓</div>
+          <div class="stat-info">
+            <span>Tiến độ trung bình</span>
+            <strong>{{ totalProgress }}%</strong>
+            <small>Trên các phân công đang tải</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-grid">
+        <section class="panel task-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Danh sách công việc</h2>
+              <p>Chọn một công việc để quản lý thành viên.</p>
+            </div>
+            <span class="count-badge">{{ totalTasks }}</span>
+          </div>
+
+          <!-- Tìm kiếm -->
+        
+<!-- Bộ lọc công việc -->
+<div class="task-filters">
+  <div class="filter-field keyword-field">
+    <label for="taskKeyword">Từ khóa</label>
+    <input
+      id="taskKeyword"
+      type="text"
+      name="searchTask"
+      [(ngModel)]="searchTask"
+      (keydown.enter)="$event.preventDefault(); applyFilters()"
+      placeholder="Mã hoặc tên công việc..." />
+  </div>
+
+  <div class="filter-field">
+    <label for="taskStatus">Trạng thái</label>
+    <select
+      id="taskStatus"
+      name="filterStatus"
+      [(ngModel)]="filterStatus">
+      <option value="">Tất cả trạng thái</option>
+      <option value="NOT_STARTED">Chưa bắt đầu</option>
+      <option value="IN_PROGRESS">Đang thực hiện</option>
+      <option value="PENDING">Tạm hoãn</option>
+      <option value="COMPLETED">Hoàn thành</option>
+      <option value="CANCELLED">Đã hủy</option>
+    </select>
+  </div>
+
+  <div class="filter-field">
+  <label for="projectId">Dự án</label>
+
+ <select
+  id="projectId"
+  name="filterProjectId"
+  [(ngModel)]="filterProjectId">
+
+  <option [ngValue]="null">Tất cả dự án</option>
+
+  <option
+    *ngFor="let project of projects"
+    [ngValue]="project.projectId">
+    {{ project.projectName }}
+  </option>
+</select>
+</div>
+
+  <div class="filter-field">
+    <label for="customerId">Khách hàng</label>
+   <select
+  id="customerId"
+  name="filterCustomerId"
+  [(ngModel)]="filterCustomerId">
+
+  <option [ngValue]="null">Tất cả khách hàng</option>
+
+  <option
+    *ngFor="let customer of customers"
+    [ngValue]="customer.customerId">
+    {{ customer.customerName }}
+  </option>
+</select>
+
+  </div>
+
+  <div class="filter-field">
+    <label for="userIdFilter">Thành viên</label>
+    <input
+      id="userIdFilter"
+      name="filterUserId"
+      type="number"
+      min="1"
+      [(ngModel)]="filterUserId"
+      placeholder="Tất cả người tạo" />
+  </div>
+
+  <div class="filter-field">
+    <label for="deadlineFrom">Deadline từ</label>
+    <input
+      id="deadlineFrom"
+      name="filterDeadlineFrom"
+      type="date"
+      [(ngModel)]="filterDeadlineFrom" />
+  </div>
+
+  <div class="filter-field">
+    <label for="deadlineTo">Deadline đến</label>
+    <input
+      id="deadlineTo"
+      name="filterDeadlineTo"
+      type="date"
+      [(ngModel)]="filterDeadlineTo" />
+  </div>
+
+  <div class="filter-field">
+    <label for="taskSort">Sắp xếp</label>
+    <select
+      id="taskSort"
+      name="sortOption"
+      [(ngModel)]="sortOption">
+      <option value="taskId,desc">Task mới nhất</option>
+      <option value="taskId,asc">Task cũ nhất</option>
+      <option value="deadline,asc">Deadline tăng dần</option>
+      <option value="deadline,desc">Deadline giảm dần</option>
+    </select>
+  </div>
+
+  <div class="filter-actions">
+    <button
+      type="button"
+      class="search-button"
+      (click)="applyFilters()"
+      [disabled]="loadingTasks">
+      {{ loadingTasks ? 'Đang tìm kiếm...' : 'Tìm kiếm công việc' }}
+    </button>
+
+    <button
+      type="button"
+      class="secondary-button"
+      (click)="resetFilters()"
+      [disabled]="loadingTasks">
+      Làm mới
+    </button>
+  </div>
+</div>
+
+
+          <!-- Danh sách -->
+          <div class="task-list" *ngIf="!loadingTasks; else taskLoading">
+            <button
+              type="button"
+              class="task-item"
+              *ngFor="let task of filteredTasks; trackBy: trackTask"
+              [class.selected]="selectedTaskId === task.taskId"
+              (click)="selectTask(task)">
+
+            
+
+<div class="task-item-top">
+  <span class="task-code">{{ task.taskCode }}</span>
+
+  <div class="task-badges">
+    <span
+      class="priority-badge"
+      [ngClass]="priorityClass(task.priorityCode)">
+      {{ task.priorityName || task.priorityCode || 'Chưa xác định' }}
+    </span>
+
+    <span
+      class="mini-status"
+      [ngClass]="statusClass(task.status ?? '')">
+     {{ statusLabel(task.status ?? '') }}
+    </span>
+  </div>
+</div>
+
+
+
+              <div class="task-item-name">{{ task.taskName }}</div>
+
+              <div class="task-item-footer">
+                <span>♙ {{ task.taskId }}</span>
+                <span *ngIf="task.deadline">
+                  Hạn: {{ task.deadline | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+            </button>
+
+            <div
+              class="empty-state"
+              *ngIf="filteredTasks.length === 0">
+              <div class="empty-icon">⌕</div>
+              <strong>Không tìm thấy công việc</strong>
+              <span>Thử từ khóa khác hoặc xóa nội dung tìm kiếm.</span>
+              <button
+                type="button"
+                class="secondary-button"
+                *ngIf="searchTask"
+                (click)="searchTask = ''; searchTasks()">
+                Xóa tìm kiếm
+              </button>
+            </div>
+          </div>
+
+          <ng-template #taskLoading>
+            <div class="loading-state">Đang tải công việc...</div>
+          </ng-template>
+
+          <!-- Phân trang -->
+           <br/>
+          <div
+            class="task-pagination"
+            *ngIf="!loadingTasks && totalTasks > 0">
+            <div class="pagination-info">
+              Hiển thị
+              <strong>{{ firstTaskNumber }}–{{ lastTaskNumber }}</strong>
+              / {{ totalTasks }} công việc
+            </div>
+
+            <div class="pagination-controls">
+              <select
+                [ngModel]="taskSize"
+                (ngModelChange)="changePageSize($event)"
+                aria-label="Số công việc mỗi trang">
+                <option [ngValue]="10">10 / trang</option>
+                <option [ngValue]="20">20 / trang</option>
+                <option [ngValue]="50">50 / trang</option>
+              </select>
+
+              <button
+                type="button"
+                [disabled]="taskPage === 0 || loadingTasks"
+                (click)="previousPage()"
+                aria-label="Trang trước">
+                ‹
+              </button>
+
+              <span class="page-number">
+                {{ taskPage + 1 }} / {{ totalPages }}
+              </span>
+
+              <button
+                type="button"
+                [disabled]="taskPage >= totalPages - 1 || loadingTasks"
+                (click)="nextPage()"
+                aria-label="Trang sau">
+                ›
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chi tiết công việc -->
+        <section class="panel members-panel">
+          <ng-container *ngIf="selectedTask as task; else noTask">
+            <div class="selected-task-header">
+              <div class="selected-task-main">
+                <span class="task-code">{{ task.taskCode }}</span>
+                <h2>{{ task.taskName }}</h2>
+                <p>
+                  {{ task.description || 'Chưa có mô tả công việc.' }}
+                </p>
+              </div>
+
+               <span
+        class="status-badge"
+        [ngClass]="statusClass(task.status ?? '')">
+        {{ statusLabel(task.status ?? '') }}
+      </span>
+            </div>
+
+            <div class="task-meta">
+              <div>
+                <span>Deadline</span>
+                <strong>
+                  {{
+                    task.deadline
+                      ? (task.deadline | date:'dd/MM/yyyy')
+                      : 'Chưa thiết lập'
+                  }}
+                </strong>
+              </div>
+              <div>
+                <span>Project ID</span>
+                <strong>{{ task.projectId ?? '—' }}</strong>
+              </div>
+              <div>
+                <span>Thành viên</span>
+                <strong>{{ members.length }}</strong>
+              </div>
+            </div>
+
+            <div class="members-heading">
+              <div>
+                <h3>Thành viên được phân công</h3>
+                <p>Danh sách người đang tham gia công việc này.</p>
+              </div>
+              <span class="count-badge">{{ members.length }}</span>
+            </div>
+
+            <div class="search-box member-search">
+              <span>⌕</span>
+              <input
+                type="text"
+                name="searchMember"
+                [(ngModel)]="searchMember"
+                placeholder="Tìm thành viên hoặc nội dung được giao..."
+                aria-label="Tìm thành viên được phân công" />
+            </div>
+
+            <div
+              class="table-wrapper"
+              *ngIf="!loadingMembers; else memberLoading">
+
+              <table *ngIf="filteredMembers.length > 0; else noMembers">
+                <thead>
+                  <tr>
+                    <th>THÀNH VIÊN</th>
+                    <th>NỘI DUNG CÔNG VIỆC</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>TIẾN ĐỘ</th>
+                    <th>DEADLINE</th>
+                    <th>THAO TÁC</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr
+                    *ngFor="let member of filteredMembers; trackBy: trackMember">
+                    <td>
+                      <div class="member-cell">
+                        <div class="member-avatar">
+                          {{
+                            (
+                              member.fullName ||
+                              member.username ||
+                              '?'
+                            ).charAt(0).toUpperCase()
+                          }}
+                        </div>
+                        <div class="member-identity">
+                          <strong>
+                            {{
+                              member.fullName ||
+                              member.username ||
+                              ('User #' + member.userId)
+                            }}
+                          </strong>
+                          <span>
+                            {{ member.username || ('ID: ' + member.userId) }}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div class="assigned-work">{{ member.assignedWork }}</div>
+                      <small class="role-text">
+                        {{
+                          member.roleName ||
+                          member.roleCode ||
+                          ('Role ID: ' + member.taskRoleId)
+                        }}
+                      </small>
+                    </td>
+
+                    <td>
+                      <span
+                        class="status-badge"
+                        [ngClass]="statusClass(member.status)">
+                        {{ statusLabel(member.status) }}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="progress-cell">
+                        <div class="progress-label">
+                          <span>{{ member.progress || 0 }}%</span>
+                        </div>
+                        <div class="progress-track">
+                          <div
+                            class="progress-fill"
+                            [style.width.%]="member.progress || 0">
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td class="deadline-cell">
+                      {{
+                        member.deadline
+                          ? (member.deadline | date:'dd/MM/yyyy')
+                          : '—'
+                      }}
+                    </td>
+
+                    <td>
+                      <div class="row-actions">
+                        <button
+                          type="button"
+                          class="action-button edit-action"
+                          title="Sửa phân công"
+                          (click)="editMember(member)">
+                          ✎
+                        </button>
+                        <button
+                          type="button"
+                          class="action-button delete-action"
+                          title="Xóa phân công"
+                          (click)="deleteMember(member)">
+                          ×
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <ng-template #noMembers>
+                <div class="empty-state table-empty">
+                  <div class="empty-icon">♙</div>
+                  <strong>
+                    {{
+                      searchMember
+                        ? 'Không tìm thấy thành viên'
+                        : 'Chưa có thành viên được phân công'
+                    }}
+                  </strong>
+                  <span>
+                    {{
+                      searchMember
+                        ? 'Thử từ khóa tìm kiếm khác.'
+                        : 'Sử dụng biểu mẫu bên dưới để giao công việc đầu tiên.'
+                    }}
+                  </span>
+                </div>
+              </ng-template>
+            </div>
+
+            <ng-template #memberLoading>
+              <div class="loading-state">
+                Đang tải danh sách thành viên...
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <ng-template #noTask>
+            <div class="empty-state no-task">
+              <div class="empty-icon">▤</div>
+              <strong>Chưa có công việc được chọn</strong>
+              <span>Hãy chọn một công việc ở danh sách bên trái.</span>
+            </div>
+          </ng-template>
+        </section>
+      </div>
+
+      <!-- Form phân công -->
+      <section class="panel assignment-panel" id="assignment-form">
+        <div class="panel-heading form-panel-heading">
+          <div>
+            <div class="eyebrow">
+              {{
+                editingMemberId !== null
+                  ? 'UPDATE ASSIGNMENT'
+                  : 'NEW ASSIGNMENT'
+              }}
+            </div>
+
+            <h2>
+              {{
+                editingMemberId !== null
+                  ? 'Cập nhật phân công'
+                  : 'Phân công thành viên'
+              }}
+            </h2>
+
+            <p>
+              Công việc:
+              <strong>{{ selectedTask?.taskCode || 'Chưa chọn' }}</strong>
+              <span *ngIf="selectedTask">
+                — {{ selectedTask.taskName }}
+              </span>
+            </p>
+          </div>
+
+          <span class="form-step">
+            {{ editingMemberId !== null ? 'Chỉnh sửa' : '01 / Giao việc' }}
+          </span>
+        </div>
+
+        <form (ngSubmit)="submitAssignment()" #assignmentForm="ngForm">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="userId">Thành viên <span>*</span></label>
+              <select
+                id="userId"
+                name="userId"
+                [(ngModel)]="form.userId"
+                required>
+                <option [ngValue]="null">Chọn thành viên</option>
+                <option
+                  *ngFor="let user of activeUsers"
+                  [ngValue]="user.userId">
+                  {{ user.fullName }} ({{ user.username }})
+                </option>
+              </select>
+              <small *ngIf="loadingUsers">Đang tải thành viên...</small>
+              <small *ngIf="!loadingUsers && activeUsers.length === 0">
+                Không có người dùng ACTIVE.
+              </small>
+            </div>
+
+            <div class="form-field">
+              <label for="taskRoleId">
+                ID vai trò trong task <span>*</span>
+              </label>
+              <input
+                id="taskRoleId"
+                name="taskRoleId"
+                type="number"
+                min="1"
+                [(ngModel)]="form.taskRoleId"
+                placeholder="Nhập taskRoleId"
+                required />
+            </div>
+
+            <div class="form-field field-wide">
+              <label for="assignedWork">
+                Nội dung công việc được giao <span>*</span>
+              </label>
+              <input
+                id="assignedWork"
+                name="assignedWork"
+                type="text"
+                [(ngModel)]="form.assignedWork"
+                placeholder="Ví dụ: Xử lý API đăng ký department"
+                required />
+            </div>
+
+            <div class="form-field">
+              <label for="status">Trạng thái</label>
+              <select
+                id="status"
+                name="status"
+                [(ngModel)]="form.status">
+                <option
+                  *ngFor="let status of statuses"
+                  [value]="status.value">
+                  {{ status.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="progress">Tiến độ (%)</label>
+              <div class="progress-input-wrap">
+                <input
+                  id="progress"
+                  name="progress"
+                  type="number"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="form.progress"
+                  required />
+                <span>%</span>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="deadline">Deadline</label>
+              <input
+                id="deadline"
+                name="deadline"
+                type="date"
+                [(ngModel)]="form.deadline" />
+            </div>
+
+            <div class="form-field field-wide">
+              <label for="note">Ghi chú</label>
+              <textarea
+                id="note"
+                name="note"
+                rows="3"
+                [(ngModel)]="form.note"
+                placeholder="Thêm yêu cầu, lưu ý hoặc thông tin bàn giao...">
+              </textarea>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <span class="required-hint">
+              <span>*</span> Trường bắt buộc
+            </span>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="cancelEdit()">
+                Làm mới biểu mẫu
+              </button>
+
+              <button
+                type="submit"
+                class="primary-button"
+                [disabled]="saving || selectedTaskId === null || !assignmentForm.valid">
+                <span *ngIf="!saving">
+                  {{
+                    editingMemberId !== null
+                      ? '✓ Cập nhật phân công'
+                      : '＋ Xác nhận phân công'
+                  }}
+                </span>
+                <span *ngIf="saving">Đang lưu...</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+</div>
