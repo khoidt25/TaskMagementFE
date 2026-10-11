@@ -40,11 +40,23 @@ export class LoginComponent {
       password: this.password
     }).subscribe({
       next: (response) => {
-        // Chỉ chuyển trang khi BE xác nhận đăng nhập thành công.
-        localStorage.setItem('userId', String(response.userId));
-    localStorage.setItem('username', response.username);
+       // AuthService đã lưu accessToken và user.
+      // Lấy user từ response mới theo cấu trúc JWT API.
 
-        this.router.navigate(['/dashboard']);
+        console.log('Login thành công');
+        console.log('Có accessToken trong response:', !!response.accessToken);
+
+// AuthService đã lưu token trong tap().
+      console.log(
+      'Có token trong localStorage:',
+      !!localStorage.getItem('accessToken')
+      );
+
+      localStorage.setItem('userId', String(response.user.userId));
+      localStorage.setItem('username', response.user.username);
+      localStorage.setItem('roles', JSON.stringify(response.user.roles));
+
+      this.router.navigate(['/dashboard']);
       },
       error: (error) => {
         if (error.status === 401 || error.status === 403) {

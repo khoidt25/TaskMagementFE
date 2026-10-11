@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { DashboardService } from '../../services/dashboard.service';
-
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +30,7 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
+    private authService: AuthService,
     private router: Router,
      private cdr: ChangeDetectorRef
   ) {}
@@ -220,13 +221,8 @@ loadDashboard(): void {
   }
 
   logout(): void {
-    this.dashboardService.logout().subscribe({
-      next: () => this.redirectToLogin(),
-      error: error => {
-        console.error('Lỗi đăng xuất:', error);
-        this.redirectToLogin();
-      }
-    });
+       this.authService.logout();
+       this.router.navigate(['/login']);
   }
 
   private redirectToLogin(): void {

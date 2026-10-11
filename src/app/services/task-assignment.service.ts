@@ -8,6 +8,8 @@ export interface TaskItem {
   taskCode: string;
   taskName: string;
   projectId?: number | null;
+  projectCode?: string | null;
+  projectName?: string | null;
   customerId?: number | null;
   createdBy?: number;
   startDate?: string | null;
@@ -19,6 +21,7 @@ export interface TaskItem {
   priorityName?: string | null;
   description?: string | null;
   note?: string | null;
+
 }
 
 export interface TaskPageResponse<T> {
@@ -43,6 +46,34 @@ export interface TaskFilter {
   deadlineFrom?: string;
   deadlineTo?: string;
   sort?: string;
+}
+
+// Thêm vào task-assignment.service.ts
+
+export interface TaskRequest {
+  taskCode: string;
+  taskName: string;
+  projectId: number | null;
+  customerId: number | null;
+  createdBy: number | null;
+  startDate: string | null;
+  deadline: string | null;
+  releaseDate: string | null;
+  priorityId: number;
+  status: string;
+  description: string | null;
+  note: string | null;
+}
+
+export interface TaskProjectOption {
+  projectId: number;
+  projectCode: string;
+  projectName: string;
+}
+
+export interface TaskCustomerOption {
+  customerId: number;
+  customerName: string;
 }
 
 @Injectable({
@@ -162,4 +193,46 @@ export class TaskAssignmentService {
       { params, withCredentials: true }
     );
   }
+
+  // Lấy chi tiết một task
+getTaskById(id: number): Observable<TaskItem> {
+  return this.http.get<TaskItem>(
+    `${this.baseUrl}/tasks/${id}`,
+    { withCredentials: true }
+  );
+}
+
+// Thêm task
+createTask(body: TaskRequest): Observable<TaskItem> {
+  return this.http.post<TaskItem>(
+    `${this.baseUrl}/tasks`,
+    body,
+    { withCredentials: true }
+  );
+}
+
+// Cập nhật task
+updateTask(id: number, body: TaskRequest): Observable<TaskItem> {
+  return this.http.put<TaskItem>(
+    `${this.baseUrl}/tasks/${id}`,
+    body,
+    { withCredentials: true }
+  );
+}
+
+// Xóa task
+deleteTask(id: number): Observable<void> {
+  return this.http.delete<void>(
+    `${this.baseUrl}/tasks/${id}`,
+    { withCredentials: true }
+  );
+}
+
+// Lấy danh sách project để chọn trong form
+getProjects(): Observable<TaskProjectOption[]> {
+  return this.http.get<TaskProjectOption[]>(
+    `${this.baseUrl}/projects`,
+    { withCredentials: true }
+  );
+}
 }

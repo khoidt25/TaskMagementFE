@@ -10,6 +10,7 @@ import { ProjectService } from '../../services/project.service';
 import { CustomerService } from '../../services/customer.service';
 import { TaskItem } from '../../services/task-assignment.service';
 
+
 interface UserItem {
   userId: number;
   username: string;
@@ -495,76 +496,102 @@ loadMembers(taskId: number): void {
     });
 }
 
-
   submitAssignment(): void {
-    if (this.selectedTaskId === null) {
-      this.errorMessage = 'Vui lòng chọn một công việc.';
-      return;
-    }
+  if (this.saving) {
+    return;
+  }
 
-    if (!this.form.userId) {
-      this.errorMessage = 'Vui lòng chọn thành viên cần phân công.';
-      return;
-    }
+  if (this.selectedTaskId == null) {
+    this.errorMessage = 'Vui lòng chọn một công việc.';
+    return;
+  }
 
-    if (!this.form.taskRoleId) {
-      this.errorMessage = 'Vui lòng nhập ID vai trò trong công việc.';
-      return;
-    }
+  if (this.form.userId == null || Number(this.form.userId) <= 0) {
+    this.errorMessage = 'Vui lòng chọn thành viên cần phân công.';
+    return;
+  }
 
-    if (!this.form.assignedWork.trim()) {
-      this.errorMessage = 'Vui lòng nhập nội dung công việc được giao.';
-      return;
-    }
+  if (this.form.taskRoleId == null || Number(this.form.taskRoleId) <= 0) {
+    this.errorMessage = 'Vui lòng chọn vai trò trong công việc.';
+    return;
+  }
 
-    if (
-      this.form.progress < 0 ||
-      this.form.progress > 100
-    ) {
-      this.errorMessage = 'Tiến độ phải nằm trong khoảng 0–100%.';
-      return;
-    }
+  if (!this.form.assignedWork?.trim()) {
+    this.errorMessage = 'Vui lòng nhập nội dung công việc được giao.';
+    return;
+  }
 
-    const taskId = this.selectedTaskId;
-    const editingId = this.editingMemberId;
+  const progress = Number(this.form.progress);
 
-    const body = {
-      taskId,
-      userId: Number(this.form.userId),
-      taskRoleId: Number(this.form.taskRoleId),
-      assignedWork: this.form.assignedWork.trim(),
-      status: this.form.status,
-      progress: Number(this.form.progress),
-      deadline: this.form.deadline || null,
-      note: this.form.note.trim() || null
-    };
+  if (!Number.isFinite(progress) || progress < 0 || progress > 100) {
+    this.errorMessage = 'Tiến độ phải nằm trong khoảng 0–100%.';
+    return;
+  }
 
-    this.saving = true;
-    this.clearMessages();
+  const taskId = this.selectedTaskId;
+  const editingId = this.editingMemberId;
 
-    const request = editingId !== null
-      ? this.taskService.updateMember(taskId, editingId, body)
-      : this.taskService.assignMember(taskId, body);
+  const body = {
+    taskId,
+    userId: Number(this.form.userId),
+    taskRoleId: Number(this.form.taskRoleId),
+    assignedWork: this.form.assignedWork.trim(),
+    status: this.form.status,
+    progress,
+    deadline: this.form.deadline || null,
+    note: this.form.note?.trim() || null
+  };
 
-    request
-      .pipe(finalize(() => this.saving = false))
-      .subscribe({
-        next: () => {
-          this.successMessage = editingId !== null
-            ? 'Cập nhật phân công thành công.'
-            : 'Phân công thành viên thành công.';
+  this.saving = true;
+  this.clearMessages();
 
-          this.cancelEdit();
-          this.loadMembers(taskId);
-        },
-        error: err => {
+  const request = editingId !== null
+    ? this.taskService.updateMember(taskId, editingId, body)
+    : this.taskService.assignMember(taskId, body);
+
+  request
+    .pipe(
+      timeout({ first: 15000 }),
+      finalize(() => {
+        this.saving = false;
+      })
+    )
+    .subscribe({
+      next: () => {
+        this.successMessage = editingId !== null
+          ? 'Cập nhật phân công thành công.'
+          : 'Phân công thành viên thành công.';
+
+        this.cancelEdit();
+        this.loadMembers(taskId);
+      },
+      error: err => {
+        if (err?.name === 'TimeoutError') {
           this.errorMessage =
+            'API phản hồi quá lâu. Vui lòng kiểm tra backend và thử lại.';
+        } else {
+          const message =
             err?.error?.message ||
             err?.error?.error ||
-            'Không thể lưu phân công. Kiểm tra dữ liệu và API backend.';
+            '';
+
+          if (
+            err?.status === 409 ||
+            message.toLowerCase().includes('đã được phân công')
+          ) {
+            this.errorMessage =
+              'Thành viên này đã được phân công vào công việc. Vui lòng chọn người khác.';
+          } else if (err?.status === 0) {
+            this.errorMessage =
+              'Không kết nối được backend. Vui lòng kiểm tra server.';
+          } else {
+            this.errorMessage =
+              message || 'Không thể lưu phân công. Vui lòng thử lại.';
+          }
         }
-      });
-  }
+      }
+    });
+}
 
   editMember(member: MemberItem): void {
     this.editingMemberId = member.taskMemberId;
@@ -685,10 +712,8 @@ loadMembers(taskId: number): void {
 }
 
   ngOnDestroy(): void {
-  // Vô hiệu hóa mọi callback đang chờ
     ++this.taskRequestId;
     ++this.memberRequestId;
-
     this.taskRequest?.unsubscribe();
     this.memberRequest?.unsubscribe();
   }

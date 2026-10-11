@@ -1,0 +1,308 @@
+ <div class="app-layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">FT</div>
+      <div>
+        <strong>TEAM FT</strong>
+        <small>Task Management</small>
+      </div>
+    </div>
+
+    <div class="nav-label">WORKSPACE</div>
+    <a class="nav-item" routerLink="/dashboard">▦ <span>Tổng quan</span></a>
+    <a class="nav-item active" routerLink="/task-management">☷ <span>Quản lý Task</span></a>
+    <a class="nav-item" routerLink="/tasks">☑ <span>Phân công công việc</span></a>
+    <a class="nav-item" routerLink="/projects">▣ <span>Quản lý Project</span></a>
+    <a class="nav-item" routerLink="/users">♙ <span>Người dùng</span></a>
+
+    <div class="sidebar-bottom">
+      <div class="avatar">A</div>
+      <div class="profile">
+        <strong>Administrator</strong>
+        <small>Quản trị hệ thống</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">Workspace / <strong>Quản lý Task</strong></div>
+      <button class="btn btn-light" type="button" (click)="loadTasks()">↻ Làm mới</button>
+    </header>
+
+    <section class="page-content">
+      <div class="page-heading">
+        <div>
+          <h1>Quản lý công việc</h1>
+          <p>Quản lý thông tin, trạng thái và thời hạn của các công việc.</p>
+        </div>
+        <button class="btn btn-primary" type="button" (click)="openCreate()">＋ Tạo công việc</button>
+      </div>
+
+      <div class="alert alert-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+        <button type="button" (click)="errorMessage = ''">×</button>
+      </div>
+      <div class="alert alert-success" *ngIf="successMessage">
+        {{ successMessage }}
+        <button type="button" (click)="successMessage = ''">×</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">☷</div>
+          <div><span>Tổng công việc tìm thấy</span><strong>{{ totalElements }}</strong></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">◷</div>
+          <div><span>Trang hiện tại</span><strong>{{ totalPages ? page + 1 : 0 }} / {{ totalPages }}</strong></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✓</div>
+          <div><span>Đang hiển thị</span><strong>{{ tasks.length }}</strong></div>
+        </div>
+      </div>
+
+      <section class="panel filter-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Tìm kiếm và lọc</h2>
+            <p>Có thể kết hợp nhiều điều kiện trong cùng một lần tìm kiếm.</p>
+          </div>
+        </div>
+
+        <form class="filter-grid" (ngSubmit)="search()">
+          <div class="field keyword-field">
+            <label>Từ khóa</label>
+            <input name="keyword" [(ngModel)]="filters.keyword"
+              placeholder="Mã task, tên công việc, mô tả...">
+          </div>
+
+          <div class="field">
+            <label>Trạng thái</label>
+            <select name="status" [(ngModel)]="filters.status">
+              <option value="">Tất cả trạng thái</option>
+              <option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Project</label>
+            <select name="projectId" [(ngModel)]="filters.projectId">
+              <option [ngValue]="null">Tất cả project</option>
+              <option *ngFor="let p of projects" [ngValue]="p.projectId">
+                {{ p.projectCode }} - {{ p.projectName }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Customer ID</label>
+            <input name="customerId" type="number" min="1"
+              [(ngModel)]="filters.customerId" placeholder="Nhập ID customer">
+          </div>
+
+          <div class="field">
+            <label>User ID được phân công</label>
+            <input name="userId" type="number" min="1"
+              [(ngModel)]="filters.userId" placeholder="Nhập ID thành viên">
+          </div>
+
+          <div class="field">
+            <label>Deadline từ ngày</label>
+            <input name="deadlineFrom" type="date" [(ngModel)]="filters.deadlineFrom">
+          </div>
+
+          <div class="field">
+            <label>Deadline đến ngày</label>
+            <input name="deadlineTo" type="date" [(ngModel)]="filters.deadlineTo">
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn btn-primary" type="submit">⌕ Tìm kiếm</button>
+            <button class="btn btn-light" type="button" (click)="resetFilters()">Đặt lại</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Danh sách công việc</h2>
+            <p>{{ totalElements }} công việc · Sắp xếp theo mã ID giảm dần</p>
+          </div>
+          <label class="page-size">
+            Hiển thị
+            <select [(ngModel)]="size" (ngModelChange)="page = 0; loadTasks()">
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="50">50</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="loading" *ngIf="loading">Đang tải danh sách công việc...</div>
+
+        <div class="table-scroll" *ngIf="!loading">
+          <table>
+            <thead>
+              <tr>
+                <th>MÃ TASK</th>
+                <th>CÔNG VIỆC</th>
+                <th>PROJECT</th>
+                <th>NGÀY BẮT ĐẦU</th>
+                <th>DEADLINE</th>
+                <th>ƯU TIÊN</th>
+                <th>TRẠNG THÁI</th>
+                <th class="action-column">THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let task of tasks; trackBy: trackByTaskId">
+                <td><span class="task-code">{{ task.taskCode || ('TASK-' + task.taskId) }}</span></td>
+                <td class="task-name-cell">
+                  <strong>{{ task.taskName }}</strong>
+                  <small>{{ task.description || 'Chưa có mô tả' }}</small>
+                </td>
+                <td>{{ projectLabel(task) }}</td>
+                <td>{{ task.startDate || '—' }}</td>
+                <td>{{ task.deadline || '—' }}</td>
+                <td>
+                  <span class="priority" [class.priority-high]="task.priorityId === 1">
+                    {{ priorityLabel(task.priorityId) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status" [ngClass]="statusClass(task.status)">
+                    {{ statusLabel(task.status) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="icon-btn edit" type="button" title="Sửa"
+                      (click)="openEdit(task)">✎</button>
+                    <button class="icon-btn delete" type="button" title="Xóa"
+                      (click)="deleteTask(task)">⌫</button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="tasks.length === 0">
+                <td colspan="8" class="empty-state">
+                  Không tìm thấy công việc phù hợp.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <span>Trang {{ totalPages ? page + 1 : 0 }} / {{ totalPages }} · {{ totalElements }} kết quả</span>
+          <div class="pagination-actions">
+            <button class="btn btn-light" type="button"
+              [disabled]="page === 0 || loading" (click)="changePage(page - 1)">‹ Trước</button>
+            <button class="btn btn-light" type="button"
+              [disabled]="page + 1 >= totalPages || loading" (click)="changePage(page + 1)">Sau ›</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" *ngIf="showForm" (click)="closeForm()">
+  <section class="task-modal" role="dialog" aria-modal="true"
+    aria-labelledby="task-form-title" (click)="$event.stopPropagation()">
+    <div class="modal-heading">
+      <div>
+        <h2 id="task-form-title">{{ editingId !== null ? 'Cập nhật công việc' : 'Tạo công việc mới' }}</h2>
+        <p>Nhập thông tin cơ bản của công việc.</p>
+      </div>
+      <button class="close-btn" type="button" [disabled]="saving" (click)="closeForm()">×</button>
+    </div>
+
+    <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <form (ngSubmit)="saveTask()">
+      <div class="form-grid">
+        <div class="field">
+          <label>Mã công việc <span>*</span></label>
+          <input name="taskCode" [(ngModel)]="form.taskCode" required maxlength="50"
+            placeholder="VD: TASK-001">
+        </div>
+
+        <div class="field">
+          <label>Tên công việc <span>*</span></label>
+          <input name="taskName" [(ngModel)]="form.taskName" required maxlength="1000"
+            placeholder="Nhập tên công việc">
+        </div>
+
+        <div class="field">
+          <label>Project</label>
+          <select name="formProjectId" [(ngModel)]="form.projectId">
+            <option [ngValue]="null">Chưa chọn project</option>
+            <option *ngFor="let p of projects" [ngValue]="p.projectId">
+              {{ p.projectCode }} - {{ p.projectName }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Customer ID</label>
+          <input name="formCustomerId" type="number" min="1"
+            [(ngModel)]="form.customerId" placeholder="Nhập ID customer">
+        </div>
+
+        <div class="field">
+          <label>Ngày bắt đầu</label>
+          <input name="startDate" type="date" [(ngModel)]="form.startDate">
+        </div>
+
+        <div class="field">
+          <label>Deadline</label>
+          <input name="deadline" type="date" [(ngModel)]="form.deadline">
+        </div>
+
+        <div class="field">
+          <label>Ngày phát hành</label>
+          <input name="releaseDate" type="date" [(ngModel)]="form.releaseDate">
+        </div>
+
+        <div class="field">
+          <label>Độ ưu tiên</label>
+          <select name="priorityId" [(ngModel)]="form.priorityId">
+            <option [ngValue]="1">Cao</option>
+            <option [ngValue]="2">Trung bình</option>
+            <option [ngValue]="3">Thấp</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Trạng thái</label>
+          <select name="formStatus" [(ngModel)]="form.status">
+            <option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+
+        <div class="field full-width">
+          <label>Mô tả</label>
+          <textarea name="description" [(ngModel)]="form.description"
+            rows="3" placeholder="Mô tả nội dung công việc"></textarea>
+        </div>
+
+        <div class="field full-width">
+          <label>Ghi chú</label>
+          <textarea name="note" [(ngModel)]="form.note"
+            rows="2" placeholder="Thông tin bổ sung"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-light" type="button" [disabled]="saving" (click)="closeForm()">Hủy</button>
+        <button class="btn btn-primary" type="submit" [disabled]="saving">
+          {{ saving ? 'Đang lưu...' : (editingId !== null ? 'Lưu thay đổi' : 'Tạo công việc') }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+

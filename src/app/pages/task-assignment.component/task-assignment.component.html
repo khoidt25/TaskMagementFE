@@ -13,10 +13,10 @@
         <span class="nav-icon">▦</span>
         <span>Tổng quan</span>
       </a>
-
+      <a class="nav-item" routerLink="/task-management">☷ <span>Quản lý Task</span></a>
       <a routerLink="/tasks" class="nav-item active">
         <span class="nav-icon">☷</span>
-        <span>Công việc</span>
+        <span>Phân công công việc</span>
         <span class="nav-count">{{ totalTasks }}</span>
       </a>
 
@@ -223,18 +223,25 @@
   </div>
 
   <div class="filter-field">
-    <label for="userIdFilter">Thành viên</label>
-    <input
-      id="userIdFilter"
-      name="filterUserId"
-      type="number"
-      min="1"
-      [(ngModel)]="filterUserId"
-      placeholder="Tất cả người tạo" />
-  </div>
+  <label for="filterUserId">Thành viên</label>
+
+  <select
+    id="filterUserId"
+    name="filterUserId"
+    [(ngModel)]="filterUserId">
+
+    <option [ngValue]="null">Tất cả thành viên</option>
+
+    <option
+      *ngFor="let user of users"
+      [ngValue]="user.userId">
+      {{ user.fullName || user.username }}
+    </option>
+  </select>
+</div>
 
   <div class="filter-field">
-    <label for="deadlineFrom">Deadline từ</label>
+    <label for="deadlineFrom">Thời gian từ</label>
     <input
       id="deadlineFrom"
       name="filterDeadlineFrom"
@@ -243,7 +250,7 @@
   </div>
 
   <div class="filter-field">
-    <label for="deadlineTo">Deadline đến</label>
+    <label for="deadlineTo">Thời gian đến</label>
     <input
       id="deadlineTo"
       name="filterDeadlineTo"
@@ -251,7 +258,7 @@
       [(ngModel)]="filterDeadlineTo" />
   </div>
 
-  <div class="filter-field">
+  <div class="filter-field" style="width: 244px;">
     <label for="taskSort">Sắp xếp</label>
     <select
       id="taskSort"
@@ -420,9 +427,9 @@
                 </strong>
               </div>
               <div>
-                <span>Project ID</span>
-                <strong>{{ task.projectId ?? '—' }}</strong>
-              </div>
+                <span>Project Name</span>
+                <strong>{{ task.projectName ?? '-'}}</strong>
+              </div>  
               <div>
                 <span>Thành viên</span>
                 <strong>{{ members.length }}</strong>
@@ -736,7 +743,7 @@
                 type="button"
                 class="secondary-button"
                 (click)="cancelEdit()">
-                Làm mới biểu mẫu
+                Làm mới
               </button>
 
               <button
