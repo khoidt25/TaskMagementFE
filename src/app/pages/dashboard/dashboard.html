@@ -14,11 +14,11 @@
         <span>Tổng quan</span>
       </a>
        <a routerLink="/task-management" routerLinkActive="active">
-        <span class="menu-icon">▣</span>
+         <span class="nav-icon">☷</span>
         <span>Quản lý Task</span>
       </a>
       <a routerLink="/tasks" routerLinkActive="active">
-        <span class="menu-icon">☷</span>
+        <span class="menu-icon">⇄</span>
         <span>Phân công công việc</span>
       </a>
       <a routerLink="/users" routerLinkActive="active">
@@ -30,7 +30,9 @@
     <div class="sidebar-bottom">
       <div class="profile-avatar">A</div>
       <div class="profile-info">
-        <strong>{{ username }}</strong>
+        <span *ngIf="authService.user$ | async as user">
+         Xin chào, {{ user.username }}
+        </span>
         <span>Administrator</span>
       </div>
       <button class="logout-button" (click)="logout()" title="Đăng xuất">

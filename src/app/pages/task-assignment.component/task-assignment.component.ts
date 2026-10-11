@@ -9,7 +9,8 @@ import { TaskAssignmentService } from '../../services/task-assignment.service';
 import { ProjectService } from '../../services/project.service';
 import { CustomerService } from '../../services/customer.service';
 import { TaskItem } from '../../services/task-assignment.service';
-
+import { TaskRole,TaskRoleService } from '../../services/task-role.service';
+import { AuthService } from '../../services/auth.service';
 
 interface UserItem {
   userId: number;
@@ -70,9 +71,12 @@ export class TaskAssignmentComponent implements OnInit {
   tasks: TaskItem[] = [];
   users: UserItem[] = [];
   members: MemberItem[] = [];
-
+  taskRoles: TaskRole[] = [];
+  
   projects: Project[] = [];
   customers: Customer[] = [];
+
+
   selectedCustomerId: number | null = null;
 
 
@@ -89,6 +93,8 @@ export class TaskAssignmentComponent implements OnInit {
   loadingTasks = false;
   loadingUsers = false;
   loadingMembers = false;
+  //loadingTaskRole = false;
+
   saving = false;
 
   
@@ -124,6 +130,8 @@ sortOption = 'taskId,desc';
     private taskService: TaskAssignmentService,
     private projectService: ProjectService,
     private customerService: CustomerService,
+    private taskRoleService: TaskRoleService,
+    private authService : AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -133,6 +141,7 @@ sortOption = 'taskId,desc';
     this.loadUsers();
     this.loadProjectOptions();
     this.loadCustomers();
+    this.loadTaskRoles();
   }
 
   private emptyForm() {
@@ -257,7 +266,6 @@ sortOption = 'taskId,desc';
 loadTasks(): void {
   const requestId = ++this.taskRequestId;
 
-  // Hủy request cũ
   this.taskRequest?.unsubscribe();
 
   this.loadingTasks = true;
@@ -282,7 +290,7 @@ loadTasks(): void {
     .pipe(
       timeout({ first: 15000 }),
       finalize(() => {
-        // Request cũ không được sửa trạng thái request mới
+      
         if (requestId === this.taskRequestId) {
           this.loadingTasks = false;
           this.cdr.detectChanges();
@@ -439,6 +447,17 @@ selectTask(task: TaskItem): void {
       });
   }
 
+  loadTaskRoles(): void {
+  this.taskRoleService.getActiveTaskRoles(0, 100).subscribe({
+    next: (response) => {
+      this.taskRoles = response.content;
+    },
+    error: () => {
+      this.errorMessage ='Không tải được danh sách vai trò.';
+    }
+  });
+}
+
 
 loadMembers(taskId: number): void {
   const requestId = ++this.memberRequestId;
@@ -558,12 +577,14 @@ loadMembers(taskId: number): void {
     )
     .subscribe({
       next: () => {
-        this.successMessage = editingId !== null
-          ? 'Cập nhật phân công thành công.'
-          : 'Phân công thành viên thành công.';
-
         this.cancelEdit();
-        this.loadMembers(taskId);
+
+this.errorMessage = '';
+this.successMessage = editingId !== null
+? 'Cập nhật phân công thành công.'
+: 'Phân công thành viên thành công.';
+
+this.loadMembers(taskId);
       },
       error: err => {
         if (err?.name === 'TimeoutError') {
@@ -605,7 +626,13 @@ loadMembers(taskId: number): void {
       deadline: member.deadline || '',
       note: member.note || ''
     };
-
+    setTimeout(() => {
+    document.getElementById('assignment-form')
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    });
     this.clearMessages();
   }
 
@@ -645,9 +672,12 @@ loadMembers(taskId: number): void {
   }
 
   cancelEdit(): void {
+    // this.editingMemberId = null;
+    // this.form = this.emptyForm();
+
     this.editingMemberId = null;
     this.form = this.emptyForm();
-    this.clearMessages();
+    //this.clearMessages();
   }
 
   startNewAssignment(): void {

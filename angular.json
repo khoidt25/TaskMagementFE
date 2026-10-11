@@ -17,6 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+    
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -29,6 +30,7 @@
               "src/styles.css"
             ],
             "server": "src/main.server.ts",
+            
             "outputMode": "server",
             "security": {
               "allowedHosts": []
@@ -63,6 +65,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+              "port": 4200
+          },
           "configurations": {
             "production": {
               "buildTarget": "tasks-app:build:production"

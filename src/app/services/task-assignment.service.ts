@@ -48,8 +48,6 @@ export interface TaskFilter {
   sort?: string;
 }
 
-// Thêm vào task-assignment.service.ts
-
 export interface TaskRequest {
   taskCode: string;
   taskName: string;
@@ -202,7 +200,6 @@ getTaskById(id: number): Observable<TaskItem> {
   );
 }
 
-// Thêm task
 createTask(body: TaskRequest): Observable<TaskItem> {
   return this.http.post<TaskItem>(
     `${this.baseUrl}/tasks`,
@@ -211,7 +208,6 @@ createTask(body: TaskRequest): Observable<TaskItem> {
   );
 }
 
-// Cập nhật task
 updateTask(id: number, body: TaskRequest): Observable<TaskItem> {
   return this.http.put<TaskItem>(
     `${this.baseUrl}/tasks/${id}`,
@@ -220,7 +216,6 @@ updateTask(id: number, body: TaskRequest): Observable<TaskItem> {
   );
 }
 
-// Xóa task
 deleteTask(id: number): Observable<void> {
   return this.http.delete<void>(
     `${this.baseUrl}/tasks/${id}`,
@@ -228,11 +223,11 @@ deleteTask(id: number): Observable<void> {
   );
 }
 
-// Lấy danh sách project để chọn trong form
 getProjects(): Observable<TaskProjectOption[]> {
   return this.http.get<TaskProjectOption[]>(
-    `${this.baseUrl}/projects`,
-    { withCredentials: true }
+    `${this.baseUrl}/projects/options`
+   
   );
 }
+
 }

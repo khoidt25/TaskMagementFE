@@ -13,16 +13,12 @@
         <span class="nav-icon">▦</span>
         <span>Tổng quan</span>
       </a>
-      <a class="nav-item" routerLink="/task-management">☷ <span>Quản lý Task</span></a>
+      <a class="nav-item" routerLink="/task-management">☷ 
+        <span>Quản lý Task</span></a>
       <a routerLink="/tasks" class="nav-item active">
-        <span class="nav-icon">☷</span>
+        <span class="nav-icon">⇄</span>
         <span>Phân công công việc</span>
         <span class="nav-count">{{ totalTasks }}</span>
-      </a>
-
-      <a routerLink="/projects" class="nav-item">
-        <span class="nav-icon">▤</span>
-        <span>Dự án</span>
       </a>
 
       <a routerLink="/users" class="nav-item">
@@ -34,7 +30,9 @@
     <div class="sidebar-bottom">
       <div class="profile-avatar">A</div>
       <div class="profile-info">
-        <strong>{{ username }}</strong>
+         <span *ngIf="authService.user$ | async as user">
+         Xin chào, {{ user.username }}
+        </span>
         <span>Administrator</span>
       </div>
       <button
@@ -642,6 +640,7 @@
                 id="userId"
                 name="userId"
                 [(ngModel)]="form.userId"
+                [disabled]="editingMemberId !== null"
                 required>
                 <option [ngValue]="null">Chọn thành viên</option>
                 <option
@@ -658,16 +657,26 @@
 
             <div class="form-field">
               <label for="taskRoleId">
-                ID vai trò trong task <span>*</span>
+                Vai trò thành viên <span>*</span>
               </label>
-              <input
-                id="taskRoleId"
-                name="taskRoleId"
-                type="number"
-                min="1"
-                [(ngModel)]="form.taskRoleId"
-                placeholder="Nhập taskRoleId"
-                required />
+              <select
+              id="taskRoleId"
+              name="taskRoleId"
+              [(ngModel)]="form.taskRoleId"
+              required>
+
+              <option [ngValue]="null" disabled>
+                -- Chọn vai trò --
+              </option>
+
+              <option
+                *ngFor="let role of taskRoles"
+                [ngValue]="role.taskRoleId">
+                    {{ role.roleName }}
+              </option>
+            </select>
+
+
             </div>
 
             <div class="form-field field-wide">
