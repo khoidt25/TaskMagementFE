@@ -1,12 +1,6 @@
 
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  inject
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   Subscription,
@@ -70,9 +64,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     value: ProjectStatus;
     label: string;
   }[] = [
-    { value: 'ACTIVE', label: 'Đang hoạt động' },
-    { value: 'INACTIVE', label: 'Ngừng hoạt động' }
-  ];
+      { value: 'ACTIVE', label: 'Đang hoạt động' },
+      { value: 'INACTIVE', label: 'Ngừng hoạt động' }
+    ];
 
   ngOnInit(): void {
     this.loadProjects();
@@ -87,10 +81,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.deleteRequest?.unsubscribe();
   }
 
-  // ==============================
-  // FORM
-  // ==============================
-
   emptyForm(): ProjectRequest {
     return {
       projectCode: '',
@@ -100,10 +90,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     };
   }
 
-  // ==============================
-  // LOAD PROJECTS
-  // ==============================
-
   loadProjects(): void {
     if (this.destroyed) {
       return;
@@ -111,7 +97,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
 
     const currentRequestId = ++this.requestId;
 
-    // Hủy request tải danh sách trước đó.
     this.projectRequest?.unsubscribe();
 
     this.loading = true;
@@ -187,10 +172,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       ) ?? null;
   }
 
-  // ==============================
-  // SEARCH & FILTER
-  // ==============================
-
   applyFilters(): void {
     this.appliedKeyword = this.keyword.trim();
     this.appliedStatus = this.filterStatus;
@@ -256,7 +237,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Các số liệu này tính trên trang đang hiển thị.
   get activeCount(): number {
     return this.projects.filter(
       project => project.projectStatus === 'ACTIVE'
@@ -269,17 +249,9 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     ).length;
   }
 
-  // ==============================
-  // SELECT PROJECT
-  // ==============================
-
   selectProject(project: Project): void {
     this.selectedProject = project;
   }
-
-  // ==============================
-  // CREATE PROJECT
-  // ==============================
 
   startCreateProject(): void {
     if (this.saving) {
@@ -293,10 +265,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.successMessage = '';
   }
-
-  // ==============================
-  // EDIT PROJECT
-  // ==============================
 
   startEditProject(project: Project): void {
     if (this.saving) {
@@ -411,10 +379,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ==============================
-  // DEACTIVATE PROJECT
-  // ==============================
-
   deleteProject(project: Project): void {
     if (this.deleting) {
       return;
@@ -460,8 +424,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
             this.selectedProject = null;
           }
 
-          // Nếu trang hiện tại chỉ còn một dự án,
-          // chuyển về trang trước sau khi ngừng hoạt động.
           if (this.projects.length === 1 && this.page > 0) {
             this.page--;
           }
@@ -506,10 +468,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   ): number {
     return project.projectId;
   }
-
-  // ==============================
-  // ERROR HANDLING
-  // ==============================
 
   private getErrorMessage(
     error: any,
