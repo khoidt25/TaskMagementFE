@@ -342,6 +342,14 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
   }
 
   startCreateTask(): void {
+
+    setTimeout(() => {
+    document.getElementById('assignment-form')
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    });
     this.editingTaskId = null;
     this.form = this.createEmptyForm();
     this.showForm = true;
@@ -350,6 +358,13 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
   }
 
   startEditTask(task: TaskItem): void {
+    setTimeout(() => {
+    document.getElementById('assignment-form')
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    });
     this.selectedTask = task;
     this.editingTaskId = task.taskId;
     this.errorMessage = '';

@@ -4,6 +4,9 @@ import { LoginComponent } from './pages/login/login';
 import { TaskAssignmentComponent } from './pages/task-assignment.component/task-assignment.component';
 import { TaskManagementCompoenent } from './pages/task-management.component/task-management.component';
 import { authGuard } from './guards/auth-guard';
+import { ProjectsComponent } from './pages/projects.component/projects.component';
+import { CustomersComponent } from './pages/customers.component/customers.component';
+import { UsersComponent } from './pages/users.component/users.component';
 
 export const routes: Routes = [
   {
@@ -27,6 +30,21 @@ export const routes: Routes = [
     canActivate: [authGuard],
     component: TaskManagementCompoenent
   },
+  {
+    path: 'projects',
+    canActivate: [authGuard],
+    component: ProjectsComponent
+  }, 
+  {
+    path: 'customers',
+    canActivate: [authGuard],
+    component: CustomersComponent
+  },
+  {
+    path: 'users',
+    canActivate: [authGuard],
+    component: UsersComponent
+  },  
   {
     path: '',
     redirectTo: 'login',

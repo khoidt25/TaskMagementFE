@@ -46,7 +46,7 @@ export class LoginComponent {
         console.log('Login thành công');
         console.log('Có accessToken trong response:', !!response.accessToken);
 
-// AuthService đã lưu token trong tap().
+      // AuthService đã lưu token trong tap().
       console.log(
       'Có token trong localStorage:',
       !!localStorage.getItem('accessToken')

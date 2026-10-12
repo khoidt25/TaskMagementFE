@@ -35,7 +35,6 @@ export class AuthService {
   private readonly userSubject =
     new BehaviorSubject<UserInfo | null>(null);
 
-  // Các component có thể theo dõi user khi thông tin thay đổi.
   readonly user$ = this.userSubject.asObservable();
 
   constructor(
@@ -46,9 +45,6 @@ export class AuthService {
     this.restoreUser();
   }
 
-  /**
-   * Đăng nhập và lưu JWT cùng thông tin user.
-   */
   login(data: LoginRequest): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${this.apiUrl}/login`, data)
@@ -66,7 +62,6 @@ export class AuthService {
             JSON.stringify(response.user)
           );
 
-          // Giữ tương thích với code đang sử dụng các key này.
           localStorage.setItem(
             'userId',
             String(response.user.userId)
@@ -87,18 +82,12 @@ export class AuthService {
       );
   }
 
-  /**
-   * Lấy JWT hiện tại.
-   */
   getToken(): string | null {
     if (!this.isBrowser) return null;
 
     return localStorage.getItem(this.tokenKey);
   }
 
-  /**
-   * Lấy thông tin user đã đăng nhập.
-   */
   getUser(): UserInfo | null {
     if (!this.isBrowser) {
       return this.userSubject.value;
@@ -115,9 +104,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Lấy username hiện tại.
-   */
   getUsername(): string | null {
     const user = this.getUser();
 
@@ -130,9 +116,6 @@ export class AuthService {
     return localStorage.getItem('username');
   }
 
-  /**
-   * Lấy userId hiện tại.
-   */
   getUserId(): number | null {
     const user = this.getUser();
 
@@ -147,9 +130,6 @@ export class AuthService {
     return value ? Number(value) : null;
   }
 
-  /**
-   * Lấy danh sách role hiện tại.
-   */
   getRoles(): string[] {
     const user = this.getUser();
 
@@ -168,9 +148,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Khôi phục user khi tải lại ứng dụng.
-   */
   restoreUser(): void {
     if (!this.isBrowser) return;
 
@@ -181,7 +158,6 @@ export class AuthService {
       return;
     }
 
-    // Tương thích với dữ liệu được lưu bằng các key cũ.
     const username = localStorage.getItem('username');
     const userId = localStorage.getItem('userId');
 
@@ -204,9 +180,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Cho phép cập nhật user dùng chung giữa các trang.
-   */
   setUser(user: UserInfo): void {
     if (this.isBrowser) {
       localStorage.setItem(
@@ -222,23 +195,14 @@ export class AuthService {
     this.userSubject.next(user);
   }
 
-  /**
-   * Kiểm tra frontend có JWT hay không.
-   */
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
 
-  /**
-   * Kiểm tra user có role cụ thể hay không.
-   */
   hasRole(role: string): boolean {
     return this.getRoles().includes(role);
   }
 
-  /**
-   * Lấy thông tin user từ backend.
-   */
   getMe(): Observable<UserInfo> {
     return this.http
       .get<UserInfo>(`${this.apiUrl}/me`)
@@ -247,9 +211,6 @@ export class AuthService {
       );
   }
 
-  /**
-   * Đăng xuất phía frontend.
-   */
   logout(): void {
     if (this.isBrowser) {
       localStorage.removeItem(this.tokenKey);
