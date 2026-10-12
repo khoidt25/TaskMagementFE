@@ -19,13 +19,14 @@ import {
   TaskProjectOption
 } from '../../services/task-assignment.service';
 
- import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
 import { error } from 'console';
+import { SidebarComponent } from '../sidebar/sidebar';
 
 @Component({
   selector: 'app-task-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, SidebarComponent],
   templateUrl: './task-management.component.html',
   styleUrl: './task-management.component.css'
 })

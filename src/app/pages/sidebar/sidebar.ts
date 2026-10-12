@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router,RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -11,10 +11,13 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './sidebar.css'
 })
 export class SidebarComponent {
+
   readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   logout(): void {
     this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
 
