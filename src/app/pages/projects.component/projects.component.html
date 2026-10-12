@@ -1,1 +1,439 @@
-<p>projects.component works!</p>
+
+<div class="app-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span>Workspace</span>
+        <span class="breadcrumb-separator">/</span>
+        <strong>Quản lý dự án</strong>
+      </div>
+
+      <div class="topbar-actions">
+        <button
+          type="button"
+          class="icon-button"
+          title="Tải lại dữ liệu"
+          (click)="refresh()"
+          [disabled]="loading">
+          ↻
+        </button>
+        <div class="user-avatar">K</div>
+      </div>
+    </header>
+
+    <section class="page-content">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">PROJECT MANAGEMENT</div>
+          <h1>Quản lý dự án</h1>
+          <p>Tạo mới, theo dõi và quản lý thông tin dự án của nhóm.</p>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="startCreateProject()">
+          <span>＋</span> Thêm dự án mới
+        </button>
+      </div>
+
+      <div
+        class="message error-message"
+        *ngIf="errorMessage"
+        role="alert">
+        <span>!</span>
+        <span>{{ errorMessage }}</span>
+        <button type="button" (click)="errorMessage = ''">×</button>
+      </div>
+
+      <div
+        class="message success-message"
+        *ngIf="successMessage"
+        role="status">
+        <span>✓</span>
+        <span>{{ successMessage }}</span>
+        <button type="button" (click)="successMessage = ''">×</button>
+      </div>
+
+      <!-- Thống kê -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue-icon">▦</div>
+          <div class="stat-info">
+            <span>Tổng dự án</span>
+            <strong>{{ totalElements }}</strong>
+            <small>Theo bộ lọc hiện tại</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green-icon">✓</div>
+          <div class="stat-info">
+            <span>Đang hoạt động</span>
+            <strong>{{ activeCount }}</strong>
+            <small>Trong trang hiện tại</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange-icon">Ⅱ</div>
+          <div class="stat-info">
+            <span>Ngừng hoạt động</span>
+            <strong>{{ inactiveCount }}</strong>
+            <small>Trong trang hiện tại</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple-icon">⌕</div>
+          <div class="stat-info">
+            <span>Trang hiện tại</span>
+            <strong>{{ totalPages ? page + 1 : 0 }}</strong>
+            <small>{{ totalPages }} trang dữ liệu</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-grid">
+        <!-- Danh sách dự án -->
+        <section class="panel project-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Danh sách dự án</h2>
+              <p>Chọn dự án để xem thông tin hoặc chỉnh sửa.</p>
+            </div>
+            <span class="count-badge">{{ totalElements }}</span>
+          </div>
+
+          <div class="project-filters">
+            <div class="filter-field keyword-field">
+              <label for="projectKeyword">Từ khóa</label>
+              <input
+                id="projectKeyword"
+                name="keyword"
+                type="text"
+                [(ngModel)]="keyword"
+                (keydown.enter)="applyFilters()"
+                placeholder="Mã hoặc tên dự án..." />
+            </div>
+
+            <div class="filter-field">
+              <label for="projectStatus">Trạng thái</label>
+              <select
+                id="projectStatus"
+                name="projectStatus"
+                [(ngModel)]="filterStatus">
+                <option value="">Tất cả trạng thái</option>
+                <option value="ACTIVE">Đang hoạt động</option>
+                <option value="INACTIVE">Ngừng hoạt động</option>
+              </select>
+            </div>
+
+            <div class="filter-actions">
+              <button
+                type="button"
+                class="primary-button"
+                (click)="applyFilters()"
+                [disabled]="loading">
+                {{ loading ? 'Đang tìm...' : 'Tìm kiếm' }}
+              </button>
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="resetFilters()"
+                [disabled]="loading">
+                Xóa lọc
+              </button>
+            </div>
+          </div>
+
+          <div class="project-list" *ngIf="!loading; else projectLoading">
+            <button
+              type="button"
+              class="project-item"
+              *ngFor="let project of projects; trackBy: trackProject"
+              [class.selected]="selectedProject?.projectId === project.projectId"
+              (click)="selectProject(project)">
+
+              <div class="project-item-top">
+                <span class="project-symbol">▦</span>
+                <span class="project-code">{{ project.projectCode }}</span>
+                <span
+                  class="mini-status"
+                  [ngClass]="statusClass(project.projectStatus)">
+                  {{ statusLabel(project.projectStatus) }}
+                </span>
+              </div>
+
+              <div class="project-item-name">
+                {{ project.projectName }}
+              </div>
+
+              <p class="project-description">
+                {{ project.description || 'Chưa có mô tả dự án.' }}
+              </p>
+
+              <div class="project-item-footer">
+                <span>ID: {{ project.projectId }}</span>
+                <span>
+                  {{ project.createdAt
+                    ? (project.createdAt | date:'dd/MM/yyyy')
+                    : 'Chưa có ngày tạo' }}
+                </span>
+              </div>
+            </button>
+
+            <div class="empty-state" *ngIf="projects.length === 0">
+              <div class="empty-icon">⌕</div>
+              <strong>Không tìm thấy dự án</strong>
+              <span>Hãy thử từ khóa khác hoặc thêm dự án mới.</span>
+            </div>
+          </div>
+
+          <ng-template #projectLoading>
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+              Đang tải danh sách dự án...
+            </div>
+          </ng-template>
+
+          <div
+            class="task-pagination"
+            *ngIf="!loading && totalElements > 0">
+            <div class="pagination-info">
+              Hiển thị
+              <strong>{{ firstItemNumber }}–{{ lastItemNumber }}</strong>
+              / {{ totalElements }}
+            </div>
+
+            <div class="pagination-controls">
+              <select
+                [ngModel]="pageSize"
+                (ngModelChange)="changePageSize($event)"
+                aria-label="Số dự án mỗi trang">
+                <option [ngValue]="10">10 / trang</option>
+                <option [ngValue]="20">20 / trang</option>
+                <option [ngValue]="50">50 / trang</option>
+              </select>
+
+              <button
+                type="button"
+                [disabled]="page <= 0 || loading"
+                (click)="previousPage()"
+                aria-label="Trang trước">‹</button>
+
+              <span class="page-number">
+                {{ page + 1 }} / {{ totalPages }}
+              </span>
+
+              <button
+                type="button"
+                [disabled]="page >= totalPages - 1 || loading"
+                (click)="nextPage()"
+                aria-label="Trang sau">›</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chi tiết dự án -->
+        <section class="panel detail-panel">
+          <ng-container *ngIf="selectedProject as project; else noProject">
+            <div class="detail-heading">
+              <div class="detail-heading-main">
+                <div class="eyebrow">PROJECT DETAILS</div>
+                <span class="project-code">{{ project.projectCode }}</span>
+                <h2>{{ project.projectName }}</h2>
+                <p>
+                  {{ project.description || 'Chưa có mô tả cho dự án này.' }}
+                </p>
+              </div>
+
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(project.projectStatus)">
+                {{ statusLabel(project.projectStatus) }}
+              </span>
+            </div>
+
+            <div class="detail-actions">
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="startEditProject(project)">
+                ✎ Sửa dự án
+              </button>
+
+              <button
+                type="button"
+                class="danger-button"
+                (click)="deleteProject(project)"
+                [disabled]="deleting">
+                × {{ deleting ? 'Đang xử lý...' : 'Ngừng hoạt động' }}
+              </button>
+            </div>
+
+            <div class="detail-meta">
+              <div class="meta-item">
+                <span>Mã dự án</span>
+                <strong>{{ project.projectCode }}</strong>
+              </div>
+              <div class="meta-item">
+                <span>Project ID</span>
+                <strong>#{{ project.projectId }}</strong>
+              </div>
+              <div class="meta-item">
+                <span>Trạng thái</span>
+                <strong>{{ statusLabel(project.projectStatus) }}</strong>
+              </div>
+              <div class="meta-item">
+                <span>Ngày tạo</span>
+                <strong>
+                  {{ project.createdAt
+                    ? (project.createdAt | date:'dd/MM/yyyy HH:mm')
+                    : 'Chưa có thông tin' }}
+                </strong>
+              </div>
+              <div class="meta-item">
+                <span>Cập nhật lần cuối</span>
+                <strong>
+                  {{ project.updatedAt
+                    ? (project.updatedAt | date:'dd/MM/yyyy HH:mm')
+                    : 'Chưa có thông tin' }}
+                </strong>
+              </div>
+            </div>
+
+            <div class="description-panel">
+              <h3>Mô tả dự án</h3>
+              <p>{{ project.description || 'Chưa có mô tả dự án.' }}</p>
+            </div>
+
+            <div class="detail-footer">
+              <span class="detail-dot"></span>
+              Đang xem thông tin dự án đã chọn
+            </div>
+          </ng-container>
+
+          <ng-template #noProject>
+            <div class="empty-state no-project">
+              <div class="empty-icon">▦</div>
+              <strong>Chưa chọn dự án</strong>
+              <span>Chọn một dự án trong danh sách để xem chi tiết.</span>
+              <button
+                type="button"
+                class="primary-button"
+                (click)="startCreateProject()">
+                ＋ Thêm dự án mới
+              </button>
+            </div>
+          </ng-template>
+        </section>
+      </div>
+
+      <!-- Form tạo / sửa -->
+      <section class="panel project-form-panel" *ngIf="showForm">
+        <div class="panel-heading form-panel-heading">
+          <div>
+            <div class="eyebrow">
+              {{ editingProjectId !== null ? 'UPDATE PROJECT' : 'CREATE PROJECT' }}
+            </div>
+            <h2>
+              {{ editingProjectId !== null
+                ? 'Cập nhật dự án'
+                : 'Tạo dự án mới' }}
+            </h2>
+            <p>Nhập thông tin dự án. Các trường có dấu * là bắt buộc.</p>
+          </div>
+
+          <button
+            type="button"
+            class="close-form-button"
+            (click)="cancelForm()"
+            aria-label="Đóng biểu mẫu">×</button>
+        </div>
+
+        <form #projectForm="ngForm" (ngSubmit)="saveProject()">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="projectCode">
+                Mã dự án <span class="required-mark">*</span>
+              </label>
+              <input
+                id="projectCode"
+                name="projectCode"
+                type="text"
+                [(ngModel)]="form.projectCode"
+                placeholder="Ví dụ: PRJ-001"
+                maxlength="50"
+                required />
+            </div>
+
+            <div class="form-field">
+              <label for="projectName">
+                Tên dự án <span class="required-mark">*</span>
+              </label>
+              <input
+                id="projectName"
+                name="projectName"
+                type="text"
+                [(ngModel)]="form.projectName"
+                placeholder="Nhập tên dự án"
+                maxlength="200"
+                required />
+            </div>
+
+            <div class="form-field">
+              <label for="formProjectStatus">Trạng thái</label>
+              <select
+                id="formProjectStatus"
+                name="formProjectStatus"
+                [(ngModel)]="form.projectStatus">
+                <option value="ACTIVE">Đang hoạt động</option>
+                <option value="INACTIVE">Ngừng hoạt động</option>
+              </select>
+            </div>
+
+            <div class="form-field field-wide">
+              <label for="projectDescription">Mô tả dự án</label>
+              <textarea
+                id="projectDescription"
+                name="description"
+                rows="5"
+                [(ngModel)]="form.description"
+                placeholder="Mục tiêu, phạm vi và thông tin tổng quan của dự án...">
+              </textarea>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <span class="required-hint">
+              <span class="required-mark">*</span> Trường bắt buộc
+            </span>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="cancelForm()"
+                [disabled]="saving">Hủy</button>
+
+              <button
+                type="submit"
+                class="primary-button"
+                [disabled]="saving || !projectForm.valid">
+                {{ saving
+                  ? 'Đang lưu...'
+                  : editingProjectId !== null
+                    ? '✓ Lưu thay đổi'
+                    : '＋ Tạo dự án' }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+</div>
+

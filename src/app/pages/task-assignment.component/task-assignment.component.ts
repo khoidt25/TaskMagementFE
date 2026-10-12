@@ -170,7 +170,7 @@ sortOption = 'taskId,desc';
   }
 
   loadProjectOptions(): void {
-  this.projectService.getOptions().subscribe({
+  this.projectService.getProjectOptions().subscribe({
     next: (data) => {
       this.projects = data;
     },

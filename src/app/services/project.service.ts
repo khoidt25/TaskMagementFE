@@ -1,70 +1,98 @@
-
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import {
+  HttpClient,
+  HttpParams
+} from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-//import { Project, ProjectRequest } from '../models/project.model';
+export type ProjectStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface Project {
   projectId: number;
+  projectCode: string;
   projectName: string;
+  description?: string | null;
+  projectStatus: ProjectStatus;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface ProjectPage {
+  content: Project[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
 }
 
 export interface ProjectRequest {
+  projectCode: string;
   projectName: string;
+  description: string;
+  projectStatus: ProjectStatus;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
-
+  private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:8081/api/projects';
 
-  constructor(private http: HttpClient) {}
+  getProjects(
+    page = 0,
+    size = 10,
+    keyword = '',
+    status = ''
+  ): Observable<ProjectPage> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
 
-//   // Lấy toàn bộ Project
-//   getAll(): Observable<Project[]> {
-//     return this.http.get<Project[]>(this.apiUrl);
-//   }
+    if (keyword.trim()) {
+      params = params.set('keyword', keyword.trim());
+    }
 
-  // Lấy danh sách dùng cho dropdown
-  getOptions(): Observable<Project[]> {
-    return this.http.get<Project[]>(
-      `${this.apiUrl}/options`
-    );
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    return this.http.get<ProjectPage>(this.apiUrl, {
+      params,
+      withCredentials: true
+    });
   }
 
-//   // Lấy chi tiết Project theo ID
-//   getById(projectId: number): Observable<Project> {
-//     return this.http.get<Project>(
-//       `${this.apiUrl}/${projectId}`
-//     );
-//   }
+  getProjectById(id: number): Observable<Project> {
+    return this.http.get<Project>(`${this.apiUrl}/${id}`, {
+      withCredentials: true
+    });
+  }
 
-//   // Tạo Project
-//   create(request: ProjectRequest): Observable<Project> {
-//     return this.http.post<Project>(
-//       this.apiUrl,
-//       request
-//     );
-//   }
+  createProject(data: ProjectRequest): Observable<Project> {
+    return this.http.post<Project>(this.apiUrl, data, {
+      withCredentials: true
+    });
+  }
 
-//   // Cập nhật Project
-//   update(
-//     projectId: number,
-//     request: ProjectRequest
-//   ): Observable<Project> {
-//     return this.http.put<Project>(
-//       `${this.apiUrl}/${projectId}`,
-//       request
-//     );
-//   }
+  updateProject(
+    id: number,
+    data: ProjectRequest
+  ): Observable<Project> {
+    return this.http.put<Project>(`${this.apiUrl}/${id}`, data, {
+      withCredentials: true
+    });
+  }
 
-//   // Xóa Project
-//   delete(projectId: number): Observable<void> {
-//     return this.http.delete<void>(
-//       `${this.apiUrl}/${projectId}`
-//     );
-//   }
+  deleteProject(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, {
+      withCredentials: true
+    });
+  }
+
+  getProjectOptions(): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.apiUrl}/options`, {
+      withCredentials: true
+    });
+  }
 }
