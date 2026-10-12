@@ -254,6 +254,14 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   startCreateProject(): void {
+    setTimeout(() => {
+      document.getElementById('assignment-form')
+       ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+    });
+
     if (this.saving) {
       return;
     }
@@ -267,6 +275,15 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   }
 
   startEditProject(project: Project): void {
+
+       setTimeout(() => {
+      document.getElementById('assignment-form')
+       ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+    });
+
     if (this.saving) {
       return;
     }
@@ -296,10 +313,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.form = this.emptyForm();
     this.errorMessage = '';
   }
-
-  // ==============================
-  // SAVE PROJECT
-  // ==============================
 
   saveProject(): void {
     if (this.saving) {
@@ -445,10 +458,6 @@ export class ProjectsComponent implements OnInit, OnDestroy {
         }
       });
   }
-
-  // ==============================
-  // STATUS
-  // ==============================
 
   statusLabel(status: ProjectStatus): string {
     return status === 'ACTIVE'
