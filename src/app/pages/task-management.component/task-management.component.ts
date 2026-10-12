@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { Route, Router,RouterModule } from '@angular/router';
 import { finalize, Subscription, timeout } from 'rxjs';
 import { Customer, CustomerService } from '../../services/customer.service';
+import { Priority,PriorityService } from '../../services/priority';
 
 import {
   TaskAssignmentService,
@@ -19,6 +20,7 @@ import {
 } from '../../services/task-assignment.service';
 
  import { AuthService } from '../../services/auth.service';
+import { error } from 'console';
 
 @Component({
   selector: 'app-task-management',
@@ -37,9 +39,12 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
   projects: TaskProjectOption[] = [];
   selectedTask: TaskItem | null = null;
   customers: Customer[] = [];
-
+  priorities: Priority[] = [];
+  
   loadingTasks = false;
   loadingProjects = false;
+  loadingPriories = false;
+
   saving = false;
   deleting = false;
   showForm = false;
@@ -76,6 +81,7 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
     private taskService: TaskAssignmentService,
     private authService: AuthService,
     private customerService: CustomerService,
+    private priorityService: PriorityService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -84,6 +90,7 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
     this.loadTasks();
     this.loadProjects();
     this.loadCustomers();
+    this.loadPriorities();
   }
 
   private createEmptyForm(): TaskRequest {
@@ -486,6 +493,23 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Lỗi tải danh sách khách hàng:', error);
+      }
+    });
+  }
+
+  loadPriorities(): void {
+    this.loadingPriories = true;
+    this.errorMessage = '';
+
+    this.priorityService.findAll().subscribe({
+      next: (data) => {
+        this.priorities = data;
+        this.loadingPriories = false;
+      },
+      error: (error) => {
+        console.error('Lỗi khi lấy danh sách Priority:', error);
+        this.errorMessage = 'Không thể tải danh sách độ ưu tiên.';
+        this.loadingPriories = false;
       }
     });
   }

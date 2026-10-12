@@ -618,11 +618,11 @@
               </option>
 
               <option
-                *ngFor="let task of tasks"
-                [ngValue]="task.priorityId">
-                    {{ task.priorityName }}
+                *ngFor="let priority of priorities"
+                [ngValue]="priority.priorityId">
+                    {{ priority.priorityName }}
               </option>
-              
+
             </select>
 
               <small>Chọn mức độ ưu tiên theo dữ liệu back end</small>

@@ -2,44 +2,7 @@
 <div class="dashboard-layout">
 
   <!-- MENU TRÁI -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="brand-icon">T</div>
-      <span>Team FT</span>
-    </div>
-
-    <nav class="sidebar-nav">
-      <a routerLink="/dashboard" routerLinkActive="active">
-        <span class="menu-icon">▦</span>
-        <span>Tổng quan</span>
-      </a>
-       <a routerLink="/task-management" routerLinkActive="active">
-         <span class="nav-icon">☷</span>
-        <span>Quản lý Task</span>
-      </a>
-      <a routerLink="/tasks" routerLinkActive="active">
-        <span class="menu-icon">⇄</span>
-        <span>Phân công công việc</span>
-      </a>
-      <a routerLink="/users" routerLinkActive="active">
-        <span class="menu-icon">♙</span>
-        <span>Thành viên</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <div class="profile-avatar">A</div>
-      <div class="profile-info">
-        <span *ngIf="authService.user$ | async as user">
-         Xin chào, {{ user.username }}
-        </span>
-        <span>Administrator</span>
-      </div>
-      <button class="logout-button" (click)="logout()" title="Đăng xuất">
-        ↪
-      </button>
-    </div>
-  </aside>
+  <app-sidebar></app-sidebar>
 
   <!-- NỘI DUNG DASHBOARD -->
   <main class="main-content">
