@@ -698,6 +698,7 @@ this.loadMembers(taskId);
   }
 
   logout(): void {
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 

@@ -21,7 +21,7 @@ export interface TaskItem {
   priorityName?: string | null;
   description?: string | null;
   note?: string | null;
-
+  
 }
 
 export interface TaskPageResponse<T> {

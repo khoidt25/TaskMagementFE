@@ -6,7 +6,7 @@
       <div class="brand-name">Team FT</div>
     </div>
 
-    <div class="nav-section">WORKSPACE</div>
+    <!-- <div class="nav-section">WORKSPACE</div> -->
 
     <nav class="navigation">
       <a routerLink="/dashboard" class="nav-item">
@@ -31,11 +31,25 @@
     </nav>
 
     <div class="sidebar-bottom">
-      <div class="workspace-icon">A</div>
+      <!-- <div class="workspace-icon">A</div>
       <div class="workspace-info">
         <strong>Team Workspace</strong>
         <span>Quản lý công việc</span>
+      </div> -->
+       <div class="profile-avatar">A</div>
+      <div class="profile-info">
+         <span *ngIf="authService.user$ | async as user">
+         Xin chào, {{ user.username }}
+        </span>
+        <span>Administrator</span>
       </div>
+      <button
+        type="button"
+        class="logout-button"
+        (click)="logout()"
+        title="Đăng xuất">
+        ↪
+      </button>
     </div>
   </aside>
 
@@ -431,8 +445,8 @@
               </div>
 
               <div class="meta-item">
-                <span>Priority ID</span>
-                <strong>{{ task.priorityId ?? '-' }}</strong>
+                <span>Mức độ ưu tiên</span>
+                <strong>{{ task.priorityName ?? '-' }}</strong>
               </div>
             </div>
 
@@ -583,27 +597,65 @@
             </div>
 
             <div class="form-field">
-              <label for="priorityId">Priority ID</label>
-              <input
+              <label for="priorityId">Mức độ ưu tiên</label>
+              <!-- <input
                 id="priorityId"
                 name="priorityId"
                 type="number"
                 min="1"
                 step="1"
                 [(ngModel)]="form.priorityId"
-                required />
-              <small>Nhập ID mức ưu tiên theo dữ liệu backend.</small>
+                required /> -->
+
+              <select
+              id="priorityId"
+              name="priorityId"
+              [(ngModel)]="form.priorityId"
+              required>
+
+              <option [ngValue]="null" disabled>
+                -- Chọn mức độ ưu tiên --
+              </option>
+
+              <option
+                *ngFor="let task of tasks"
+                [ngValue]="task.priorityId">
+                    {{ task.priorityName }}
+              </option>
+              
+            </select>
+
+              <small>Chọn mức độ ưu tiên theo dữ liệu back end</small>
+
             </div>
 
             <div class="form-field">
-              <label for="customerId">Customer ID</label>
-              <input
+              <label for="customerId">Khách hàng</label>
+              <!-- <input
                 id="customerId"
                 name="customerId"
                 type="number"
                 min="1"
                 [(ngModel)]="form.customerId"
-                placeholder="Để trống nếu chưa có khách hàng" />
+                placeholder="Để trống nếu chưa có khách hàng" /> -->
+             
+            <select
+              id="customerId"
+              name="customerId"
+              [(ngModel)]="form.customerId"
+              required>
+
+              <option [ngValue]="null" disabled>
+                -- Chọn khách hàng --
+              </option>
+
+              <option
+                *ngFor="let customer of customers"
+                [ngValue]="customer.customerId">
+                    {{ customer.customerName }}
+              </option>
+            </select>    
+
             </div>
 
             <div class="form-field field-wide">

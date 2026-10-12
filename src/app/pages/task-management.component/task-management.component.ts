@@ -6,8 +6,9 @@ import {
   OnInit
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Route, Router,RouterModule } from '@angular/router';
 import { finalize, Subscription, timeout } from 'rxjs';
+import { Customer, CustomerService } from '../../services/customer.service';
 
 import {
   TaskAssignmentService,
@@ -16,6 +17,8 @@ import {
   TaskRequest,
   TaskProjectOption
 } from '../../services/task-assignment.service';
+
+ import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-task-management',
@@ -33,6 +36,7 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
   tasks: TaskItem[] = [];
   projects: TaskProjectOption[] = [];
   selectedTask: TaskItem | null = null;
+  customers: Customer[] = [];
 
   loadingTasks = false;
   loadingProjects = false;
@@ -70,12 +74,16 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
 
   constructor(
     private taskService: TaskAssignmentService,
+    private authService: AuthService,
+    private customerService: CustomerService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadTasks();
     this.loadProjects();
+    this.loadCustomers();
   }
 
   private createEmptyForm(): TaskRequest {
@@ -368,7 +376,6 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
       return '';
     }
 
-    // Hỗ trợ cả chuỗi yyyy-MM-dd và ISO datetime.
     return value.length >= 10 ? value.substring(0, 10) : value;
   }
 
@@ -401,9 +408,12 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
       ...this.form,
       taskCode,
       taskName,
+
+      // createdBy = this.authService.getUsername();
+
       projectId: this.form.projectId ?? null,
       customerId: this.form.customerId ?? null,
-      createdBy: this.form.createdBy ?? null,
+      createdBy: this.authService.getUserId(),
       startDate: this.form.startDate || null,
       deadline: this.form.deadline || null,
       releaseDate: this.form.releaseDate || null,
@@ -465,6 +475,19 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  loadCustomers(): void {
+    this.customerService.findAll().subscribe({
+      next: (data) => {
+        this.customers = data.filter(
+          customer => customer.customerStatus === 'ACTIVE'
+        );
+      },
+      error: (error) => {
+        console.error('Lỗi tải danh sách khách hàng:', error);
+      }
+    });
   }
 
   deleteTask(task: TaskItem): void {
@@ -530,6 +553,11 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
   refresh(): void {
     this.loadTasks();
     this.loadProjects();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   trackTask(_: number, task: TaskItem): number {
