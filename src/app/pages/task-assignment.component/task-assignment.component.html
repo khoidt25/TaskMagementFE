@@ -1,49 +1,7 @@
 
 <div class="app-layout">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-logo">T</div>
-      <div>
-        <div class="brand-name">Team FT</div>
-      </div>
-    </div>
-
-    <nav class="navigation">
-      <a routerLink="/dashboard" class="nav-item">
-        <span class="nav-icon">▦</span>
-        <span>Tổng quan</span>
-      </a>
-      <a class="nav-item" routerLink="/task-management">☷ 
-        <span>Quản lý Task</span></a>
-      <a routerLink="/tasks" class="nav-item active">
-        <span class="nav-icon">⇄</span>
-        <span>Phân công công việc</span>
-        <span class="nav-count">{{ totalTasks }}</span>
-      </a>
-
-      <a routerLink="/users" class="nav-item">
-        <span class="nav-icon">♙</span>
-        <span>Thành viên</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <div class="profile-avatar">A</div>
-      <div class="profile-info">
-         <span *ngIf="authService.user$ | async as user">
-         Xin chào, {{ user.username }}
-        </span>
-        <span>Administrator</span>
-      </div>
-      <button
-        type="button"
-        class="logout-button"
-        (click)="logout()"
-        title="Đăng xuất">
-        ↪
-      </button>
-    </div>
-  </aside>
+  <!--MENU TRAI-->
+  <app-sidebar></app-sidebar>
 
   <main class="main-content">
     <header class="topbar">
@@ -393,7 +351,7 @@
             </div>
           </div>
         </section>
-        
+
         <!-- Chi tiết công việc -->
         <section class="panel members-panel">
           <ng-container *ngIf="selectedTask as task; else noTask">

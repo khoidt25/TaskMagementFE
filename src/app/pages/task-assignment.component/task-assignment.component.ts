@@ -11,6 +11,7 @@ import { CustomerService } from '../../services/customer.service';
 import { TaskItem } from '../../services/task-assignment.service';
 import { TaskRole,TaskRoleService } from '../../services/task-role.service';
 import { AuthService } from '../../services/auth.service';
+import { SidebarComponent } from '../sidebar/sidebar';
 
 interface UserItem {
   userId: number;
@@ -56,7 +57,7 @@ interface Customer {
 @Component({
   selector: 'app-task-assignment',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, SidebarComponent],
   templateUrl: './task-assignment.component.html',
   styleUrl: './task-assignment.component.css'
 })
