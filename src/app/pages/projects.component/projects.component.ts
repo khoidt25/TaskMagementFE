@@ -273,7 +273,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.successMessage = '';
   }
-
+  
   startEditProject(project: Project): void {
 
        setTimeout(() => {
