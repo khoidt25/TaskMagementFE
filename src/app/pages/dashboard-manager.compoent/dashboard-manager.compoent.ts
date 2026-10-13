@@ -7,5 +7,5 @@ import { SidebarComponent } from '../sidebar/sidebar';
   templateUrl: './dashboard-manager.compoent.html',
 })
 export class DashboardManagerCompoent {
-    
+
 }
