@@ -44,7 +44,8 @@ export const routes: Routes = [
     path: 'users',
     canActivate: [authGuard],
     component: UsersComponent
-  },  
+  },
+    
   {
     path: '',
     redirectTo: 'login',
