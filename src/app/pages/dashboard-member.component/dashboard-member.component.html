@@ -1,1 +1,343 @@
-<p>dashboard-member.component works!</p>
+
+<div class="member-page">
+  <!-- Header -->
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">Workspace / Thành viên / Tổng quan</div>
+      <h1>Công việc của tôi</h1>
+      <p>Theo dõi công việc, lập kế hoạch và ghi nhận thời gian làm việc.</p>
+    </div>
+
+    <button
+      class="btn btn-primary"
+      type="button"
+      (click)="loadTasks()"
+      [disabled]="loading">
+      <span class="refresh-icon">↻</span>
+      {{ loading ? 'Đang tải...' : 'Làm mới' }}
+    </button>
+  </header>
+
+  <!-- Alerts -->
+  <div class="alert alert-error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="alert alert-success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <!-- Statistics -->
+  <section class="stats-grid">
+    <article class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Tổng công việc</span>
+        <span class="stat-icon icon-blue">▤</span>
+      </div>
+      <strong class="stat-number">{{ totalTasks }}</strong>
+      <span class="stat-description">Công việc được giao</span>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Đang thực hiện</span>
+        <span class="stat-icon icon-orange">◷</span>
+      </div>
+      <strong class="stat-number">{{ inProgressTasks }}</strong>
+      <span class="stat-description">Công việc đang xử lý</span>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Đã hoàn thành</span>
+        <span class="stat-icon icon-green">✓</span>
+      </div>
+      <strong class="stat-number">{{ completedTasks }}</strong>
+      <span class="stat-description">Công việc đã hoàn tất</span>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Quá hạn</span>
+        <span class="stat-icon icon-red">!</span>
+      </div>
+      <strong class="stat-number">{{ overdueTasks }}</strong>
+      <span class="stat-description">Cần ưu tiên xử lý</span>
+    </article>
+  </section>
+
+  <!-- Daily work planning -->
+  <section class="panel worklog-panel">
+    <div class="panel-heading">
+      <div>
+        <span class="section-eyebrow">DAILY WORK LOG</span>
+        <h2>Kế hoạch công việc hằng ngày</h2>
+        <p>Đăng ký giờ dự kiến theo từng task và cập nhật giờ thực tế cuối ngày.</p>
+      </div>
+      <span class="panel-icon">◷</span>
+    </div>
+
+    <div class="worklog-toolbar">
+      <div class="date-field">
+        <label for="workDate">Ngày làm việc</label>
+        <input
+          id="workDate"
+          type="date"
+          [(ngModel)]="selectedWorkDate"
+          (ngModelChange)="loadWorkLogs()" />
+      </div>
+
+      <div class="worklog-summary">
+        <div class="hours-summary">
+          <span>Giờ dự kiến</span>
+          <strong>{{ getPlannedTotal() | number:'1.0-2' }} giờ</strong>
+        </div>
+        <div class="hours-summary">
+          <span>Giờ thực tế</span>
+          <strong>{{ getActualTotal() | number:'1.0-2' }} giờ</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!workLogLoading && workLogRows.length > 0">
+      <table class="worklog-table">
+        <thead>
+          <tr>
+            <th>Công việc</th>
+            <th>Giờ dự kiến</th>
+            <th>Giờ thực tế</th>
+            <th>Ghi chú trong ngày</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of workLogRows; trackBy: trackByWorkLog">
+            <td class="task-info">
+              <span class="task-code">{{ row.taskCode }}</span>
+              <strong>{{ row.taskName }}</strong>
+            </td>
+
+            <td>
+              <div class="hour-input">
+                <input
+                  type="number"
+                  min="0"
+                  max="24"
+                  step="0.5"
+                  [(ngModel)]="row.plannedHours"
+                  [ngModelOptions]="{standalone: true}"
+                  [disabled]="row.status === 'COMPLETED' && row.progress === 100"
+                  aria-label="Số giờ dự kiến" />
+                <span>giờ</span>
+              </div>
+            </td>
+
+            <td>
+              <div class="hour-input">
+                <input
+                  type="number"
+                  min="0"
+                  max="24"
+                  step="0.5"
+                  [(ngModel)]="row.actualHours"
+                  [ngModelOptions]="{standalone: true}"
+                  aria-label="Số giờ thực tế" />
+                <span>giờ</span>
+              </div>
+            </td>
+
+            <td>
+              <input
+                class="note-input"
+                type="text"
+                placeholder="Hôm nay đã làm gì?"
+                [(ngModel)]="row.note"
+                [ngModelOptions]="{standalone: true}" />
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="btn btn-small btn-outline"
+                (click)="saveWorkLog(row)"
+                [disabled]="savingWorkLogId === row.taskMemberId">
+                {{ savingWorkLogId === row.taskMemberId ? 'Đang lưu...' : 'Lưu giờ' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="loading-state" *ngIf="workLogLoading">
+      Đang tải kế hoạch làm việc...
+    </div>
+
+    <div class="empty-state" *ngIf="!workLogLoading && workLogRows.length === 0">
+      <div class="empty-icon">◷</div>
+      <h3>Chưa có dữ liệu kế hoạch</h3>
+      <p>Kiểm tra ngày đã chọn hoặc tải danh sách công việc để lập kế hoạch.</p>
+    </div>
+
+    <div class="panel-footer">
+      <span>Giờ làm việc được ghi nhận riêng theo từng task và từng ngày.</span>
+    </div>
+  </section>
+
+  <!-- Task list -->
+  <section class="panel task-panel">
+    <div class="panel-heading">
+      <div>
+        <span class="section-eyebrow">MY WORKSPACE</span>
+        <h2>Danh sách công việc</h2>
+        <p>Tra cứu, cập nhật trạng thái và tiến độ các task được phân công.</p>
+      </div>
+
+      <span class="task-count">
+        {{ filteredTasks.length }} công việc
+      </span>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="search-field">
+        <span class="search-icon">⌕</span>
+        <input
+          type="text"
+          placeholder="Tìm theo mã task hoặc tên task..."
+          [(ngModel)]="keyword"
+          (ngModelChange)="applyFilters()" />
+      </div>
+
+      <select
+        class="filter-select"
+        [(ngModel)]="selectedStatus"
+        (ngModelChange)="applyFilters()">
+        <option value="ALL">Tất cả trạng thái</option>
+        <option *ngFor="let status of statuses" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      Đang tải danh sách công việc...
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && filteredTasks.length === 0">
+      <div class="empty-icon">▤</div>
+      <h3>Không tìm thấy công việc</h3>
+      <p>Thử thay đổi từ khóa hoặc bộ lọc trạng thái.</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && filteredTasks.length > 0">
+      <table class="task-table">
+        <thead>
+          <tr>
+            <th>Công việc</th>
+            <th>Vai trò</th>
+            <th>Phần việc được giao</th>
+            <th>Deadline</th>
+            <th>Trạng thái</th>
+            <th>Tiến độ</th>
+            <th>Ghi chú</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let task of filteredTasks; trackBy: trackByTask">
+            <td class="task-info">
+              <span class="task-code">{{ task.taskCode }}</span>
+              <strong>{{ task.taskName }}</strong>
+              <small>ID: {{ task.taskId }}</small>
+            </td>
+
+            <td>
+              <span class="role-label">{{ task.roleName || 'Chưa phân vai trò' }}</span>
+            </td>
+
+            <td class="assigned-work">
+              {{ task.assignedWork || '—' }}
+            </td>
+
+            <td>
+              <span
+                class="deadline"
+                [class.overdue]="
+                  !!task.deadline &&
+                  task.deadline < getToday() &&
+                  task.status !== 'COMPLETED' &&
+                  task.status !== 'CANCELLED'
+                ">
+                {{ task.deadline || '—' }}
+              </span>
+            </td>
+
+            <td>
+              <select
+  class="status-select"
+  [(ngModel)]="task.status"
+  [ngModelOptions]="{standalone: true}"
+  (ngModelChange)="onStatusChange(task)"
+  [disabled]="savingId === task.taskMemberId">
+  <option *ngFor="let status of statuses" [value]="status.value">
+    {{ status.label }}
+  </option>
+</select>
+            </td>
+
+            <td class="progress-cell">
+              <div class="progress-value">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="task.progress"
+                  [ngModelOptions]="{standalone: true}"
+                  [disabled]="task.status === 'COMPLETED' && task.progress === 100"
+                  aria-label="Phần trăm tiến độ" />
+                <span>%</span>
+              </div>
+
+              <div class="progress-track">
+                <div
+                  class="progress-fill"
+                  [class.progress-complete]="task.progress === 100"
+                  [style.width.%]="task.progress || 0">
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <input
+                class="note-input"
+                type="text"
+                placeholder="Nhập ghi chú..."
+                [(ngModel)]="task.note"
+                [ngModelOptions]="{standalone: true}"
+                [disabled]="task.status === 'COMPLETED' && task.progress === 100" />
+            </td>
+
+            <td>
+              <button
+  class="btn btn-small btn-primary"
+  type="button"
+  (click)="saveTask(task)"
+  [disabled]="savingId !== null ||
+              task.progress < 0 ||
+              task.progress > 100">
+  {{ savingId === task.taskMemberId ? 'Đang lưu...' : 'Lưu task' }}
+</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel-footer">
+      <span>Thay đổi trạng thái và tiến độ cần được lưu để cập nhật lên hệ thống.</span>
+    </div>
+  </section>
+</div>
