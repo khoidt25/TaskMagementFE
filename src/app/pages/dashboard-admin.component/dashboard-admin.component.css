@@ -1,0 +1,132 @@
+/* ADMIN DASHBOARD ENHANCEMENTS */
+
+.stat-icon.purple {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.welcome-label {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.welcome-banner p {
+  margin: 0 0 20px;
+  color: #dbeafe;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.completion-overview {
+  padding: 10px 0;
+}
+
+.completion-number {
+  color: #172554;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+
+.completion-caption {
+  margin: 4px 0 20px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.completion-track {
+  height: 10px;
+  margin-bottom: 24px;
+}
+
+.completion-details {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.completion-details > div {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.completion-details strong {
+  color: #334155;
+  font-size: 13px;
+}
+
+.completion-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.completion-dot.done {
+  background: #10b981;
+}
+
+.completion-dot.doing {
+  background: #3b82f6;
+}
+
+.completion-dot.overdue {
+  background: #ef4444;
+}
+
+.status-percent {
+  margin-left: 5px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.project-progress {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 105px;
+}
+
+.project-progress .progress-track {
+  width: 70px;
+  min-width: 45px;
+}
+
+.project-progress > span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.refresh-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-art {
+    margin-right: 10px;
+  }
+}
+
+@media (max-width: 560px) {
+  .completion-number {
+    font-size: 40px;
+  }
+
+  .welcome-art {
+    display: none;
+  }
+
+  .project-progress {
+    min-width: 90px;
+  }
+}
