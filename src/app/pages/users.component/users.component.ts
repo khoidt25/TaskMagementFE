@@ -104,10 +104,6 @@ export class UsersComponent implements OnInit, OnDestroy {
     };
   }
 
-  // =========================
-  // LOAD USERS
-  // =========================
-
   loadUsers(): void {
     this.loading = true;
     this.errorMessage = '';
@@ -187,10 +183,6 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
-  // =========================
-  // STATISTICS
-  // =========================
-
   get activeUsersCount(): number {
     return this.users.filter(
       user => this.statusOf(user) === 'ACTIVE'
@@ -202,10 +194,6 @@ export class UsersComponent implements OnInit, OnDestroy {
       user => this.statusOf(user) === 'INACTIVE'
     ).length;
   }
-
-  // =========================
-  // ROLE AND STATUS
-  // =========================
 
   roleOf(user: UserResponse): UserRole {
     const item = user as any;
@@ -539,10 +527,6 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
-  // =========================
-  // ACTIVATE / DEACTIVATE USER
-  // =========================
-
   toggleStatus(user: UserResponse): void {
     if (this.deleting) return;
 
@@ -593,10 +577,6 @@ export class UsersComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(sub);
   }
-
-  // =========================
-  // MANAGER ASSIGNMENT
-  // =========================
 
   selectManager(event: Event): void {
     const select = event.target as HTMLSelectElement;
@@ -851,10 +831,6 @@ export class UsersComponent implements OnInit, OnDestroy {
       ? project.projectName
       : `Project #${projectId}`;
   }
-
-  // =========================
-  // ERROR HANDLING
-  // =========================
 
   private getErrorMessage(
     error: unknown,
