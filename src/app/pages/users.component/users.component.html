@@ -1,425 +1,332 @@
 <div class="app-layout">
-  <!-- Nếu project đã có layout/sidebar riêng, hãy thay phần này bằng layout đang dùng -->
   <app-sidebar></app-sidebar>
 
   <main class="main-content">
     <header class="topbar">
       <div class="breadcrumb">
         <span>Workspace</span>
-        <span class="breadcrumb-separator">/</span>
+        <span>/</span>
         <strong>Quản lý người dùng</strong>
       </div>
 
-      <div class="topbar-actions">
-        <button
-          type="button"
-          class="icon-button"
-          title="Tải lại dữ liệu"
-          (click)="refresh()"
-          [disabled]="loading">
-          ↻
-        </button>
-        <div class="user-avatar">A</div>
-      </div>
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="refresh()"
+        [disabled]="loading">
+        ↻ Tải lại
+      </button>
     </header>
 
     <section class="page-content">
       <div class="page-heading">
         <div>
-          <div class="eyebrow">USER MANAGEMENT</div>
+          <span class="eyebrow">USER MANAGEMENT</span>
           <h1>Quản lý người dùng</h1>
-          <p>
-            Quản lý tài khoản, vai trò và phân công thành viên cho Manager.
-          </p>
+          <p>Quản lý tài khoản, vai trò và phân công cho Manager.</p>
         </div>
 
         <button
+          *ngIf="activeTab === 'users'"
           type="button"
           class="primary-button"
-          *ngIf="activeTab === 'users'"
           (click)="startCreate()">
-          <span>＋</span> Thêm người dùng
+          + Thêm người dùng
         </button>
       </div>
 
-      <!-- Thông báo -->
-      <div
-        class="message error-message"
-        *ngIf="errorMessage"
-        role="alert">
-        <span>!</span>
-        <span>{{ errorMessage }}</span>
-        <button
-          type="button"
-          aria-label="Đóng thông báo lỗi"
-          (click)="errorMessage = ''">
-          ×
-        </button>
+      <div *ngIf="errorMessage" class="message error-message">
+        {{ errorMessage }}
+        <button type="button" (click)="errorMessage = ''">×</button>
       </div>
 
-      <div
-        class="message success-message"
-        *ngIf="successMessage"
-        role="status">
-        <span>✓</span>
-        <span>{{ successMessage }}</span>
-        <button
-          type="button"
-          aria-label="Đóng thông báo thành công"
-          (click)="successMessage = ''">
-          ×
-        </button>
+      <div *ngIf="successMessage" class="message success-message">
+        {{ successMessage }}
+        <button type="button" (click)="successMessage = ''">×</button>
       </div>
 
-      <!-- Thống kê -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon blue-icon">♙</div>
-          <div class="stat-info">
-            <span>Tổng người dùng</span>
-            <strong>{{ users.length }}</strong>
-            <small>Trong hệ thống</small>
-          </div>
+          <span>Tổng người dùng</span>
+          <strong>{{ users.length }}</strong>
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon green-icon">✓</div>
-          <div class="stat-info">
-            <span>Đang hoạt động</span>
-            <strong>{{ activeUsersCount }}</strong>
-            <small>Tài khoản ACTIVE</small>
-          </div>
+          <span>Đang hoạt động</span>
+          <strong>{{ activeUsersCount }}</strong>
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon orange-icon">♧</div>
-          <div class="stat-info">
-            <span>Manager</span>
-            <strong>{{ managers.length }}</strong>
-            <small>Quản lý nhóm</small>
-          </div>
+          <span>Manager</span>
+          <strong>{{ managers.length }}</strong>
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon purple-icon">♧</div>
-          <div class="stat-info">
-            <span>Member</span>
-            <strong>{{ members.length }}</strong>
-            <small>Thành viên</small>
-          </div>
+          <span>Member</span>
+          <strong>{{ members.length }}</strong>
         </div>
       </div>
 
-      <!-- Tab -->
-      <div class="tab-bar">
+      <nav class="tab-bar">
         <button
           type="button"
           [class.active]="activeTab === 'users'"
           (click)="activeTab = 'users'">
-          ♙ Người dùng
+          Người dùng
         </button>
 
         <button
           type="button"
           [class.active]="activeTab === 'assignments'"
           (click)="activeTab = 'assignments'">
-          ⇄ Phân công Manager
+          Phân công Manager
         </button>
-      </div>
+      </nav>
 
-      <!-- Tab quản lý người dùng -->
-      <div class="work-grid" *ngIf="activeTab === 'users'">
-        <section class="panel user-list-panel">
-          <div class="panel-heading">
-            <div>
-              <h2>Danh sách người dùng</h2>
-              <p>Chọn tài khoản để xem thông tin hoặc chỉnh sửa vai trò.</p>
-            </div>
-            <span class="count-badge">{{ totalElements }}</span>
-          </div>
-
-          <!-- Bộ lọc -->
-          <div class="user-filters">
-            <div class="filter-field keyword-field">
-              <label for="userKeyword">Từ khóa</label>
-              <input
-                id="userKeyword"
-                name="keyword"
-                [(ngModel)]="keyword"
-                (keydown.enter)="applyFilters()"
-                placeholder="Username, email hoặc ID..." />
-            </div>
-
-            <div class="filter-field">
-              <label for="userRole">Vai trò</label>
-              <select
-                id="userRole"
-                name="userRole"
-                [(ngModel)]="filterRole">
-                <option value="">Tất cả vai trò</option>
-                <option value="ADMIN">Admin</option>
-                <option value="MANAGER">Manager</option>
-                <option value="MEMBER">Member</option>
-              </select>
-            </div>
-
-            <div class="filter-field">
-              <label for="userStatus">Trạng thái</label>
-              <select
-                id="userStatus"
-                name="userStatus"
-                [(ngModel)]="filterStatus">
-                <option value="">Tất cả trạng thái</option>
-                <option value="ACTIVE">Đang hoạt động</option>
-                <option value="INACTIVE">Ngừng hoạt động</option>
-              </select>
-            </div>
-
-            <div class="filter-actions">
-              <button
-                type="button"
-                class="primary-button"
-                (click)="applyFilters()"
-                [disabled]="loading">
-                Tìm kiếm
-              </button>
-
-              <button
-                type="button"
-                class="secondary-button"
-                (click)="resetFilters()"
-                [disabled]="loading">
-                Xóa lọc
-              </button>
-            </div>
-          </div>
-
-          <!-- Danh sách -->
-          <div class="user-list" *ngIf="!loading; else userLoading">
-            <button
-              type="button"
-              class="user-item"
-              *ngFor="let user of filteredUsers; trackBy: trackUser"
-              [class.selected]="selectedUser?.userId === user.userId"
-              (click)="selectUser(user)">
-
-              <div class="user-item-top">
-                <span class="user-symbol">
-                  {{ (user.username || '?').charAt(0).toUpperCase() }}
-                </span>
-
-                <span class="user-code">#{{ user.userId }}</span>
-
-                <span
-                  class="mini-status"
-                  [ngClass]="statusClass(statusOf(user))">
-                  {{ statusLabel(statusOf(user)) }}
-                </span>
-              </div>
-
-              <div class="user-item-name">
-                {{ user.fullName || user.username }}
-              </div>
-
-              <p class="user-description">
-                {{ user.email || user.username }}
-              </p>
-
-              <div class="user-item-footer">
-                <span>{{ user.username }}</span>
-                <span>{{ roleOf(user) }}</span>
-              </div>
-            </button>
-
-            <div
-              class="empty-state"
-              *ngIf="filteredUsers.length === 0">
-              <div class="empty-icon">⌕</div>
-              <strong>Không tìm thấy người dùng</strong>
-              <span>Thử từ khóa khác hoặc tạo tài khoản mới.</span>
-            </div>
-          </div>
-
-          <ng-template #userLoading>
-            <div class="loading-state">
-              <span class="loading-spinner"></span>
-              Đang tải danh sách người dùng...
-            </div>
-          </ng-template>
-
-          <!-- Phân trang -->
-          <div
-            class="task-pagination"
-            *ngIf="!loading && totalElements > 0">
-            <div class="pagination-info">
-              Hiển thị
-              <strong>{{ firstItemNumber }}–{{ lastItemNumber }}</strong>
-              / {{ totalElements }}
-            </div>
-
-            <div class="pagination-controls">
-              <select
-                [ngModel]="pageSize"
-                (ngModelChange)="changePageSize($event)"
-                aria-label="Số người dùng mỗi trang">
-                <option [ngValue]="10">10 / trang</option>
-                <option [ngValue]="20">20 / trang</option>
-                <option [ngValue]="50">50 / trang</option>
-              </select>
-
-              <button
-                type="button"
-                [disabled]="page <= 0 || loading"
-                (click)="previousPage()"
-                aria-label="Trang trước">
-                ‹
-              </button>
-
-              <span class="page-number">
-                {{ page + 1 }} / {{ totalPages }}
-              </span>
-
-              <button
-                type="button"
-                [disabled]="page >= totalPages - 1 || loading"
-                (click)="nextPage()"
-                aria-label="Trang sau">
-                ›
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Chi tiết người dùng -->
-        <section class="panel detail-panel">
-          <ng-container *ngIf="selectedUser as user; else noUser">
-            <div class="detail-heading">
-              <div class="detail-heading-main">
-                <div class="eyebrow">USER DETAILS</div>
-                <span class="user-code">USER #{{ user.userId }}</span>
-                <h2>{{ user.fullName || user.username }}</h2>
-                <p>{{ user.email || 'Chưa có email' }}</p>
-              </div>
-
-              <span
-                class="status-badge"
-                [ngClass]="statusClass(statusOf(user))">
-                {{ statusLabel(statusOf(user)) }}
-              </span>
-            </div>
-
-            <div class="detail-actions">
-              <button
-                type="button"
-                class="secondary-button"
-                (click)="startEdit(user)">
-                ✎ Sửa thông tin
-              </button>
-
-              <button
-                type="button"
-                class="danger-button"
-                (click)="toggleStatus(user)"
-                [disabled]="deleting">
-                {{
-                  statusOf(user) === 'ACTIVE'
-                    ? 'Ⅱ Khóa tài khoản'
-                    : '✓ Kích hoạt tài khoản'
-                }}
-              </button>
-            </div>
-
-            <div class="detail-meta">
-              <div class="meta-item">
-                <span>User ID</span>
-                <strong>#{{ user.userId }}</strong>
-              </div>
-
-              <div class="meta-item">
-                <span>Username</span>
-                <strong>{{ user.username }}</strong>
-              </div>
-
-              <div class="meta-item">
-                <span>Email</span>
-                <strong>{{ user.email || 'Chưa cập nhật' }}</strong>
-              </div>
-
-              <div class="meta-item">
-                <span>Vai trò</span>
-                <strong>{{ roleOf(user) }}</strong>
-              </div>
-
-              <div class="meta-item">
-                <span>Trạng thái</span>
-                <strong>{{ statusLabel(statusOf(user)) }}</strong>
-              </div>
-
-              <div class="meta-item">
-                <span>Ngày tạo</span>
-                <strong>
-                  {{
-                    user.createdAt
-                      ? (user.createdAt | date:'dd/MM/yyyy HH:mm')
-                      : 'Chưa có thông tin'
-                  }}
-                </strong>
-              </div>
-            </div>
-
-            <div class="description-panel">
-              <h3>Quản lý vai trò</h3>
-              <label for="detailRole">Thay đổi vai trò</label>
-
-              <select
-                id="detailRole"
-                [value]="roleOf(user)"
-                (change)="changeRole(user, $event)">
-                <option value="ADMIN">Admin</option>
-                <option value="MANAGER">Manager</option>
-                <option value="MEMBER">Member</option>
-              </select>
-            </div>
-
-            <div class="detail-footer">
-              <span class="detail-dot"></span>
-              Đang xem thông tin người dùng đã chọn
-            </div>
-          </ng-container>
-
-          <ng-template #noUser>
-            <div class="empty-state no-customer">
-              <div class="empty-icon">♙</div>
-              <strong>Chưa chọn người dùng</strong>
-              <span>Chọn một tài khoản bên trái để xem chi tiết.</span>
-
-              <button
-                type="button"
-                class="primary-button"
-                (click)="startCreate()">
-                ＋ Thêm người dùng
-              </button>
-            </div>
-          </ng-template>
-        </section>
-      </div>
-
-      <!-- Tab phân công Manager -->
-      <section
-        class="panel assignment-panel"
-        *ngIf="activeTab === 'assignments'">
-
+      <!-- TAB NGƯỜI DÙNG -->
+      <section *ngIf="activeTab === 'users'" class="panel">
         <div class="panel-heading">
           <div>
-            <h2>Phân công Manager</h2>
-            <p>
-              Chọn Manager, sau đó phân công các Project và Member phụ trách.
-            </p>
+            <h2>Danh sách người dùng</h2>
+            <p>Tìm kiếm tài khoản và quản lý vai trò.</p>
+          </div>
+          <span class="count-badge">{{ totalElements }}</span>
+        </div>
+
+        <div class="filter-grid">
+          <div class="form-field">
+            <label for="keyword">Từ khóa</label>
+            <input
+              id="keyword"
+              name="keyword"
+              [(ngModel)]="keyword"
+              (keyup.enter)="applyFilters()"
+              placeholder="Username, email hoặc ID">
+          </div>
+
+          <div class="form-field">
+            <label for="filterRole">Vai trò</label>
+            <select
+              id="filterRole"
+              name="filterRole"
+              [(ngModel)]="filterRole">
+              <option value="">Tất cả vai trò</option>
+              <option value="ADMIN">Admin</option>
+              <option value="MANAGER">Manager</option>
+              <option value="MEMBER">Member</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="filterStatus">Trạng thái</label>
+            <select
+              id="filterStatus"
+              name="filterStatus"
+              [(ngModel)]="filterStatus">
+              <option value="">Tất cả trạng thái</option>
+              <option value="ACTIVE">Đang hoạt động</option>
+              <option value="INACTIVE">Ngừng hoạt động</option>
+            </select>
+          </div>
+
+          <div class="filter-actions">
+            <button
+              type="button"
+              class="primary-button"
+              (click)="applyFilters()">
+              Tìm kiếm
+            </button>
+
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="resetFilters()">
+              Xóa lọc
+            </button>
           </div>
         </div>
 
-        <div class="filter-field manager-select-field">
-          <label for="managerSelect">Manager</label>
+        <div *ngIf="loading" class="loading-state">
+          Đang tải dữ liệu...
+        </div>
+
+        <div *ngIf="!loading" class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Người dùng</th>
+                <th>Email</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr
+                *ngFor="let user of filteredUsers; trackBy: trackUser"
+                [class.selected-row]="selectedUser?.userId === user.userId">
+
+                <td>#{{ user.userId }}</td>
+
+                <td>
+                  <button
+                    type="button"
+                    class="user-name-button"
+                    (click)="selectUser(user)">
+                    {{ user.fullName || user.username }}
+                  </button>
+                  <small class="sub-text">{{ user.username }}</small>
+                </td>
+
+                <td>{{ user.email || '—' }}</td>
+
+                <td>
+                  <select
+                    [value]="roleOf(user)"
+                    (change)="changeRole(user, $event)"
+                    aria-label="Thay đổi vai trò">
+                    <option value="ADMIN">Admin</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="MEMBER">Member</option>
+                  </select>
+                </td>
+
+                <td>
+                  <span
+                    class="status-badge"
+                    [ngClass]="statusClass(statusOf(user))">
+                    {{ statusLabel(statusOf(user)) }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="table-actions">
+                    <button
+                      type="button"
+                      class="secondary-button"
+                      (click)="selectUser(user)">
+                      Chi tiết
+                    </button>
+
+                    <button
+                      type="button"
+                      class="danger-button"
+                      [disabled]="deleting"
+                      (click)="toggleStatus(user)">
+                      {{ statusOf(user) === 'ACTIVE' ? 'Khóa' : 'Kích hoạt' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr *ngIf="filteredUsers.length === 0">
+                <td colspan="6" class="empty-state">
+                  Không tìm thấy người dùng.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" *ngIf="!loading && totalElements > 0">
+          <span>
+            Hiển thị {{ firstItemNumber }}–{{ lastItemNumber }}
+            / {{ totalElements }}
+          </span>
+
+          <div class="pagination-actions">
+            <select
+              [ngModel]="pageSize"
+              (ngModelChange)="changePageSize($event)"
+              aria-label="Số dòng mỗi trang">
+              <option [ngValue]="10">10 / trang</option>
+              <option [ngValue]="20">20 / trang</option>
+              <option [ngValue]="50">50 / trang</option>
+            </select>
+
+            <button
+              type="button"
+              class="secondary-button"
+              [disabled]="page <= 0"
+              (click)="previousPage()">
+              Trang trước
+            </button>
+
+            <span>{{ page + 1 }} / {{ totalPages }}</span>
+
+            <button
+              type="button"
+              class="secondary-button"
+              [disabled]="page >= totalPages - 1"
+              (click)="nextPage()">
+              Trang sau
+            </button>
+          </div>
+        </div>
+
+        <!-- Chi tiết người dùng -->
+        <div *ngIf="selectedUser as user" class="detail-card">
+          <div class="panel-heading">
+            <div>
+              <h2>Thông tin người dùng</h2>
+              <p>{{ user.fullName || user.username }} (#{{ user.userId }})</p>
+            </div>
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="selectedUser = null">
+              Đóng
+            </button>
+          </div>
+
+          <div class="detail-grid">
+            <div>
+              <span>Username</span>
+              <strong>{{ user.username }}</strong>
+            </div>
+
+            <div>
+              <span>Email</span>
+              <strong>{{ user.email || 'Chưa cập nhật' }}</strong>
+            </div>
+
+            <div>
+              <span>Vai trò</span>
+              <strong>{{ roleLabel(user) }}</strong>
+            </div>
+
+            <div>
+              <span>Trạng thái</span>
+              <strong>{{ statusLabel(statusOf(user)) }}</strong>
+            </div>
+
+            <div>
+              <span>Ngày tạo</span>
+              <strong>
+                {{
+                  user.createdAt
+                    ? (user.createdAt | date:'dd/MM/yyyy HH:mm')
+                    : '—'
+                }}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB PHÂN CÔNG -->
+      <section *ngIf="activeTab === 'assignments'" class="panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Phân công Manager</h2>
+            <p>Chọn Project và Member mà Manager được quản lý.</p>
+          </div>
+        </div>
+
+        <div class="form-field manager-field">
+          <label for="managerSelect">Chọn Manager</label>
 
           <select
             id="managerSelect"
@@ -436,13 +343,13 @@
           </select>
         </div>
 
-        <div class="assignment-grid" *ngIf="selectedManagerId">
-          <!-- Phân công Member -->
-          <div class="assignment-column">
+        <div *ngIf="selectedManagerId" class="assignment-grid">
+          <!-- MEMBER -->
+          <section class="assignment-column">
             <div class="panel-heading">
               <div>
-                <h3>Thành viên</h3>
-                <p>Chọn Member thuộc nhóm Manager này.</p>
+                <h3>Phân công Member</h3>
+                <p>Chọn các thành viên thuộc nhóm.</p>
               </div>
               <span class="count-badge">
                 {{ selectedMemberIds.length }}
@@ -457,23 +364,15 @@
                 <input
                   type="checkbox"
                   [checked]="selectedMemberIds.includes(member.userId)"
-                  (change)="toggleMember(member.userId, $event)" />
-
-                <span class="assignment-avatar">
-                  {{ (member.username || '?').charAt(0).toUpperCase() }}
-                </span>
+                  (change)="toggleMember(member.userId, $event)">
 
                 <span class="assignment-text">
                   <strong>{{ member.fullName || member.username }}</strong>
-                  <small>
-                    {{ member.email || ('Member #' + member.userId) }}
-                  </small>
+                  <small>{{ member.email || member.username }}</small>
                 </span>
               </label>
 
-              <div
-                class="empty-state"
-                *ngIf="members.length === 0">
+              <div *ngIf="members.length === 0" class="empty-state">
                 Chưa có Member trong hệ thống.
               </div>
             </div>
@@ -483,19 +382,20 @@
               class="primary-button full-button"
               [disabled]="saving"
               (click)="saveMembers()">
-              Lưu phân công Member
+              {{ saving ? 'Đang lưu...' : 'Lưu phân công Member' }}
             </button>
 
             <div class="current-assignments">
-              <h3>Phân công hiện tại</h3>
+              <h3>Member đã phân công</h3>
 
               <div
                 class="assignment-chip"
                 *ngFor="let id of assignedMemberIds">
                 <span>{{ userNameById(id) }}</span>
+
                 <button
                   type="button"
-                  title="Thu hồi"
+                  title="Thu hồi phân công"
                   (click)="removeMember(id)">
                   ×
                 </button>
@@ -507,14 +407,14 @@
                 Chưa có Member được phân công.
               </p>
             </div>
-          </div>
+          </section>
 
-          <!-- Phân công Project -->
-          <div class="assignment-column">
+          <!-- PROJECT -->
+          <section class="assignment-column">
             <div class="panel-heading">
               <div>
-                <h3>Dự án</h3>
-                <p>Chọn Project Manager được quyền quản lý.</p>
+                <h3>Phân công Project</h3>
+                <p>Chọn các dự án Manager được quyền quản lý.</p>
               </div>
               <span class="count-badge">
                 {{ selectedProjectIds.length }}
@@ -529,20 +429,18 @@
                 <input
                   type="checkbox"
                   [checked]="selectedProjectIds.includes(project.projectId)"
-                  (change)="toggleProject(project.projectId, $event)" />
-
-                <span class="project-symbol">▦</span>
+                  (change)="toggleProject(project.projectId, $event)">
 
                 <span class="assignment-text">
                   <strong>{{ project.projectName }}</strong>
-                  <small>Project #{{ project.projectId }}</small>
+                  <small>
+                    {{ project.projectCode }} · #{{ project.projectId }}
+                  </small>
                 </span>
               </label>
 
-              <div
-                class="empty-state"
-                *ngIf="projects.length === 0">
-                Chưa có danh sách Project. Hãy kết nối ProjectService trong component.
+              <div *ngIf="projects.length === 0" class="empty-state">
+                Chưa có Project ACTIVE hoặc không tải được danh sách Project.
               </div>
             </div>
 
@@ -551,19 +449,20 @@
               class="primary-button full-button"
               [disabled]="saving"
               (click)="saveProjects()">
-              Lưu phân công Project
+              {{ saving ? 'Đang lưu...' : 'Lưu phân công Project' }}
             </button>
 
             <div class="current-assignments">
-              <h3>Phân công hiện tại</h3>
+              <h3>Project đã phân công</h3>
 
               <div
                 class="assignment-chip"
                 *ngFor="let id of assignedProjectIds">
                 <span>{{ projectNameById(id) }}</span>
+
                 <button
                   type="button"
-                  title="Thu hồi"
+                  title="Thu hồi phân công"
                   (click)="removeProject(id)">
                   ×
                 </button>
@@ -575,74 +474,61 @@
                 Chưa có Project được phân công.
               </p>
             </div>
-          </div>
+          </section>
         </div>
 
-        <div class="empty-state" *ngIf="!selectedManagerId">
-          Chọn Manager để xem và cập nhật phân công.
+        <div *ngIf="!selectedManagerId" class="empty-state">
+          Hãy chọn Manager để xem và cập nhật phân công.
         </div>
       </section>
 
-      <!-- Form tạo người dùng -->
-      <section class="panel customer-form-panel" *ngIf="showForm">
-        <div class="panel-heading form-panel-heading">
+      <!-- FORM TẠO TÀI KHOẢN -->
+      <section *ngIf="showForm" class="panel form-panel">
+        <div class="panel-heading">
           <div>
-            <div class="eyebrow">CREATE USER</div>
             <h2>Thêm người dùng mới</h2>
-            <p>
-              Nhập thông tin tài khoản. Các trường có dấu * là bắt buộc.
-            </p>
+            <p>Nhập thông tin tài khoản cần tạo.</p>
           </div>
 
           <button
             type="button"
-            class="close-form-button"
-            (click)="cancelForm()"
-            aria-label="Đóng biểu mẫu">
-            ×
+            class="secondary-button"
+            (click)="cancelForm()">
+            Đóng
           </button>
         </div>
 
         <form #userForm="ngForm" (ngSubmit)="saveUser()">
           <div class="form-grid">
             <div class="form-field">
-              <label for="username">
-                Username <span class="required-mark">*</span>
-              </label>
+              <label for="username">Username *</label>
               <input
                 id="username"
                 name="username"
                 [(ngModel)]="form.username"
                 required
-                maxlength="100"
-                placeholder="Nhập username" />
+                maxlength="100">
             </div>
 
             <div class="form-field">
-              <label for="email">
-                Email <span class="required-mark">*</span>
-              </label>
+              <label for="email">Email *</label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 [(ngModel)]="form.email"
-                required
-                placeholder="name@company.com" />
+                required>
             </div>
 
             <div class="form-field">
-              <label for="password">
-                Mật khẩu <span class="required-mark">*</span>
-              </label>
+              <label for="password">Mật khẩu *</label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 [(ngModel)]="form.password"
                 required
-                minlength="6"
-                placeholder="Nhập mật khẩu" />
+                minlength="6">
             </div>
 
             <div class="form-field">
@@ -658,27 +544,20 @@
             </div>
           </div>
 
-          <div class="form-footer">
-            <span class="required-hint">
-              <span class="required-mark">*</span> Trường bắt buộc
-            </span>
+          <div class="form-actions">
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="cancelForm()">
+              Hủy
+            </button>
 
-            <div class="form-actions">
-              <button
-                type="button"
-                class="secondary-button"
-                (click)="cancelForm()"
-                [disabled]="saving">
-                Hủy
-              </button>
-
-              <button
-                type="submit"
-                class="primary-button"
-                [disabled]="saving || !userForm.valid">
-                {{ saving ? 'Đang lưu...' : '＋ Tạo tài khoản' }}
-              </button>
-            </div>
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="saving || !userForm.valid">
+              {{ saving ? 'Đang tạo...' : 'Tạo tài khoản' }}
+            </button>
           </div>
         </form>
       </section>

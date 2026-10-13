@@ -9,6 +9,8 @@ export interface UserResponse {
   email?: string;
   roleId?: number;
   roleName?: string;
+  roleCode?: string;
+  userStatus?: string;
   status?: string;
   createdAt?: string;
   [key: string]: unknown;
@@ -21,7 +23,19 @@ export interface UserCreateRequest {
   roleId: number;
 }
 
-@Injectable({ providedIn: 'root' })
+export interface ManagerProjectsRequest {
+  managerId: number;
+  projectIds: number[];
+}
+
+export interface ManagerMembersRequest {
+  managerId: number;
+  memberIds: number[];
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class UserAdminService {
   private readonly http = inject(HttpClient);
 
@@ -33,11 +47,19 @@ export class UserAdminService {
   }
 
   create(request: UserCreateRequest): Observable<UserResponse> {
-    return this.http.post<UserResponse>(this.baseUrl, request);
+    return this.http.post<UserResponse>(
+      this.baseUrl,
+      request
+    );
   }
 
-  changeRole(userId: number, roleId: number): Observable<UserResponse> {
-    const params = new HttpParams().set('roleId', roleId);
+  changeRole(
+    userId: number,
+    roleId: number
+  ): Observable<UserResponse> {
+    const params = new HttpParams()
+      .set('roleId', roleId);
+
     return this.http.put<UserResponse>(
       `${this.baseUrl}/${userId}/role`,
       null,
@@ -45,8 +67,13 @@ export class UserAdminService {
     );
   }
 
-  changeStatus(userId: number, status: string): Observable<UserResponse> {
-    const params = new HttpParams().set('status', status);
+  changeStatus(
+    userId: number,
+    status: string
+  ): Observable<UserResponse> {
+    const params = new HttpParams()
+      .set('status', status);
+
     return this.http.put<UserResponse>(
       `${this.baseUrl}/${userId}/status`,
       null,
@@ -70,29 +97,45 @@ export class UserAdminService {
     managerId: number,
     projectIds: number[]
   ): Observable<unknown> {
-    return this.http.post(`${this.assignmentUrl}/projects`, {
+    const request: ManagerProjectsRequest = {
       managerId,
       projectIds
-    });
+    };
+
+    return this.http.post(
+      `${this.assignmentUrl}/projects`,
+      request
+    );
   }
 
   assignMembers(
     managerId: number,
     memberIds: number[]
   ): Observable<unknown> {
-    return this.http.post(`${this.assignmentUrl}/members`, {
+    const request: ManagerMembersRequest = {
       managerId,
       memberIds
-    });
+    };
+
+    return this.http.post(
+      `${this.assignmentUrl}/members`,
+      request
+    );
   }
 
-  removeProject(managerId: number, projectId: number): Observable<unknown> {
+  removeProject(
+    managerId: number,
+    projectId: number
+  ): Observable<unknown> {
     return this.http.delete(
       `${this.assignmentUrl}/${managerId}/projects/${projectId}`
     );
   }
 
-  removeMember(managerId: number, memberId: number): Observable<unknown> {
+  removeMember(
+    managerId: number,
+    memberId: number
+  ): Observable<unknown> {
     return this.http.delete(
       `${this.assignmentUrl}/${managerId}/members/${memberId}`
     );

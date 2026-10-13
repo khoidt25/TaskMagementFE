@@ -1,31 +1,30 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  inject
-} from '@angular/core';
+import {ChangeDetectorRef,Component,OnDestroy,OnInit,inject} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize, Subscription, timeout } from 'rxjs';
+import {
+  finalize,
+  forkJoin,
+  Subscription,
+  timeout
+} from 'rxjs';
 
 import { SidebarComponent } from '../sidebar/sidebar';
+
 import {
   UserAdminService,
   UserResponse
 } from '../../services/user-admin.service';
 
+import {
+  ProjectService,
+  Project
+} from '../../services/project.service';
+
 interface UserForm {
-  userId?: number;
   username: string;
   email: string;
   password: string;
   roleId: number;
-}
-
-interface ProjectResponse {
-  projectId: number;
-  projectName: string;
 }
 
 type UserStatus = 'ACTIVE' | 'INACTIVE';
@@ -34,50 +33,51 @@ type UserRole = 'ADMIN' | 'MANAGER' | 'MEMBER';
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    SidebarComponent
+  ],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css'
 })
 export class UsersComponent implements OnInit, OnDestroy {
   private readonly userService = inject(UserAdminService);
+  private readonly projectService = inject(ProjectService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly subscriptions = new Subscription();
 
   users: UserResponse[] = [];
   filteredUsers: UserResponse[] = [];
+
   managers: UserResponse[] = [];
   members: UserResponse[] = [];
-  projects: ProjectResponse[] = [];
+  projects: Project[] = [];
 
   selectedUser: UserResponse | null = null;
   selectedManagerId: number | null = null;
 
-  // Tab
   activeTab: 'users' | 'assignments' = 'users';
 
-  // Trạng thái giao diện
   loading = false;
   saving = false;
   deleting = false;
+
   showForm = false;
   isEditMode = false;
 
   errorMessage = '';
   successMessage = '';
 
-  // Bộ lọc
   keyword = '';
   filterRole = '';
   filterStatus = '';
 
-  // Phân trang, dùng phân trang phía frontend vì API hiện tại
-  // GET /api/users/all trả về danh sách List<UserResponse>.
   page = 0;
   pageSize = 10;
   totalElements = 0;
-  totalPages = 0;
+  totalPages = 1;
 
-  // Phân công Manager
   selectedMemberIds: number[] = [];
   selectedProjectIds: number[] = [];
 
@@ -88,6 +88,7 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadProjects();
   }
 
   ngOnDestroy(): void {
@@ -104,7 +105,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // TẢI DỮ LIỆU NGƯỜI DÙNG
+  // LOAD USERS
   // =========================
 
   loadUsers(): void {
@@ -120,28 +121,24 @@ export class UsersComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe({
-        next: (response: any) => {
-          // Hỗ trợ cả List<UserResponse> và response có content.
-          const list: UserResponse[] = Array.isArray(response)
+        next: (response) => {
+          this.users = Array.isArray(response)
             ? response
-            : Array.isArray(response?.content)
-              ? response.content
-              : [];
+            : [];
 
-          this.users = list;
-
-          this.managers = list.filter(
-            user => this.normalizeRole(this.roleOf(user)) === 'MANAGER'
+          this.managers = this.users.filter(
+            user => this.roleOf(user) === 'MANAGER'
           );
 
-          this.members = list.filter(
-            user => this.normalizeRole(this.roleOf(user)) === 'MEMBER'
+          this.members = this.users.filter(
+            user => this.roleOf(user) === 'MEMBER'
           );
 
-          // Nếu tài khoản đang chọn không còn trong danh sách, bỏ chọn.
           if (this.selectedUser) {
             this.selectedUser =
-              list.find(u => u.userId === this.selectedUser?.userId) ?? null;
+              this.users.find(
+                user => user.userId === this.selectedUser?.userId
+              ) ?? null;
           }
 
           this.applyFilters();
@@ -159,20 +156,49 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   refresh(): void {
     this.loadUsers();
+    this.loadProjects();
+
+    if (this.selectedManagerId) {
+      this.loadManagerAssignments(this.selectedManagerId);
+    }
   }
 
   // =========================
-  // THỐNG KÊ
+  // LOAD PROJECTS
+  // =========================
+
+  private loadProjects(): void {
+    const sub = this.projectService.getProjectOptions()
+      .pipe(timeout(15000))
+      .subscribe({
+        next: (response) => {
+          this.projects = Array.isArray(response)
+            ? response.filter(
+                project => project.projectStatus === 'ACTIVE'
+              )
+            : [];
+
+          this.cdr.markForCheck();
+        },
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể tải danh sách Project.'
+          );
+        }
+      });
+
+    this.subscriptions.add(sub);
+  }
+
+  // =========================
+  // STATISTICS
   // =========================
 
   get activeUsersCount(): number {
     return this.users.filter(
       user => this.statusOf(user) === 'ACTIVE'
     ).length;
-  }
-
-  get activeCount(): number {
-    return this.activeUsersCount;
   }
 
   get inactiveCount(): number {
@@ -182,56 +208,41 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // VAI TRÒ VÀ TRẠNG THÁI
+  // ROLE AND STATUS
   // =========================
 
-  roleOf(user: UserResponse): string {
+  roleOf(user: UserResponse): UserRole {
     const item = user as any;
 
-    const value =
+    const value = String(
+      item.roleCode ??
       item.roleName ??
+      item.role?.roleCode ??
       item.role?.roleName ??
       item.role?.name ??
       item.role ??
-      item.roleCode ??
-      '';
+      ''
+    ).toUpperCase();
 
-    const role = String(value).toUpperCase();
+    if (value.includes('ADMIN')) return 'ADMIN';
+    if (value.includes('MANAGER')) return 'MANAGER';
+    if (value.includes('MEMBER')) return 'MEMBER';
 
-    if (role.includes('ADMIN')) {
-      return 'ADMIN';
-    }
-
-    if (role.includes('MANAGER')) {
-      return 'MANAGER';
-    }
-
-    if (role.includes('MEMBER')) {
-      return 'MEMBER';
-    }
-
-    // Dùng roleId nếu backend không trả roleName.
-    const roleId = Number(item.roleId ?? item.role?.roleId);
+    const roleId = Number(
+      item.roleId ?? item.role?.roleId
+    );
 
     if (roleId === 1) return 'ADMIN';
     if (roleId === 2) return 'MANAGER';
-    if (roleId === 3) return 'MEMBER';
-
-    return 'MEMBER';
-  }
-
-  private normalizeRole(value: string): UserRole {
-    const role = value.toUpperCase();
-
-    if (role === 'ADMIN') return 'ADMIN';
-    if (role === 'MANAGER') return 'MANAGER';
 
     return 'MEMBER';
   }
 
   private getRoleId(user: UserResponse): number {
-    const item = user as any;
-    const roleId = Number(item.roleId ?? item.role?.roleId);
+    const roleId = Number(
+      (user as any).roleId ??
+      (user as any).role?.roleId
+    );
 
     if ([1, 2, 3].includes(roleId)) {
       return roleId;
@@ -249,11 +260,15 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   statusOf(user: UserResponse): UserStatus {
     const item = user as any;
-    const value = String(
-      item.status ?? item.userStatus ?? item.accountStatus ?? 'ACTIVE'
+
+    const status = String(
+      item.userStatus ??
+      item.status ??
+      item.accountStatus ??
+      'ACTIVE'
     ).toUpperCase();
 
-    return value === 'INACTIVE' || value === 'DISABLED'
+    return status === 'INACTIVE' || status === 'DISABLED'
       ? 'INACTIVE'
       : 'ACTIVE';
   }
@@ -278,11 +293,13 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   statusClass(status: string): string {
-    return status === 'ACTIVE' ? 'active' : 'inactive';
+    return status === 'ACTIVE'
+      ? 'active'
+      : 'inactive';
   }
 
   // =========================
-  // TÌM KIẾM VÀ PHÂN TRANG
+  // SEARCH AND PAGINATION
   // =========================
 
   applyFilters(): void {
@@ -378,7 +395,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // CHỌN NGƯỜI DÙNG
+  // SELECT USER
   // =========================
 
   selectUser(user: UserResponse): void {
@@ -388,7 +405,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // TẠO NGƯỜI DÙNG
+  // CREATE USER
   // =========================
 
   startCreate(): void {
@@ -406,12 +423,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   saveUser(): void {
-    if (this.saving) return;
-
-    if (this.isEditMode) {
-      this.errorMessage =
-        'Backend hiện chưa có API cập nhật username/email. ' +
-        'Bạn vẫn có thể đổi vai trò tại mục Quản lý vai trò.';
+    if (this.saving || this.isEditMode) {
       return;
     }
 
@@ -419,12 +431,14 @@ export class UsersComponent implements OnInit, OnDestroy {
     const email = this.form.email.trim();
 
     if (!username || !email || !this.form.password) {
-      this.errorMessage = 'Vui lòng nhập đầy đủ thông tin bắt buộc.';
+      this.errorMessage =
+        'Vui lòng nhập đầy đủ thông tin bắt buộc.';
       return;
     }
 
     if (this.form.password.length < 6) {
-      this.errorMessage = 'Mật khẩu phải có ít nhất 6 ký tự.';
+      this.errorMessage =
+        'Mật khẩu phải có ít nhất 6 ký tự.';
       return;
     }
 
@@ -450,7 +464,6 @@ export class UsersComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.showForm = false;
-          this.isEditMode = false;
           this.form = this.emptyForm();
           this.successMessage = 'Tạo tài khoản thành công.';
           this.page = 0;
@@ -467,19 +480,12 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
-  // =========================
-  // SỬA THÔNG TIN
-  // =========================
-
   startEdit(user: UserResponse): void {
     this.selectedUser = user;
     this.isEditMode = true;
     this.showForm = true;
-    this.errorMessage = '';
-    this.successMessage = '';
 
     this.form = {
-      userId: user.userId,
       username: user.username ?? '',
       email: user.email ?? '',
       password: '',
@@ -487,18 +493,18 @@ export class UsersComponent implements OnInit, OnDestroy {
     };
 
     this.errorMessage =
-      'Bạn đang mở thông tin chỉnh sửa. Backend hiện chưa có API ' +
-      'cập nhật username/email; chức năng lưu chỉnh sửa sẽ cần API PUT riêng.';
+      'Backend hiện chưa có API cập nhật username/email.';
   }
 
   // =========================
-  // ĐỔI VAI TRÒ
+  // CHANGE ROLE
   // =========================
 
   changeRole(user: UserResponse, event: Event): void {
     const select = event.target as HTMLSelectElement;
-    const role = select.value;
-    const roleIds: Record<string, number> = {
+    const role = select.value as UserRole;
+
+    const roleIds: Record<UserRole, number> = {
       ADMIN: 1,
       MANAGER: 2,
       MEMBER: 3
@@ -513,7 +519,8 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const sub = this.userService.changeRole(user.userId, roleId)
+    const sub = this.userService
+      .changeRole(user.userId, roleId)
       .pipe(
         timeout(15000),
         finalize(() => this.cdr.markForCheck())
@@ -528,6 +535,7 @@ export class UsersComponent implements OnInit, OnDestroy {
             error,
             'Không thể cập nhật vai trò.'
           );
+
           select.value = this.roleOf(user);
         }
       });
@@ -536,7 +544,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // KHÓA / KÍCH HOẠT TÀI KHOẢN
+  // ACTIVATE / DEACTIVATE USER
   // =========================
 
   toggleStatus(user: UserResponse): void {
@@ -547,10 +555,13 @@ export class UsersComponent implements OnInit, OnDestroy {
         ? 'INACTIVE'
         : 'ACTIVE';
 
-    const actionText =
-      nextStatus === 'ACTIVE' ? 'kích hoạt' : 'khóa';
+    const action = nextStatus === 'ACTIVE'
+      ? 'kích hoạt'
+      : 'khóa';
 
-    if (!window.confirm(`Bạn có chắc muốn ${actionText} tài khoản này?`)) {
+    if (!window.confirm(
+      `Bạn có chắc muốn ${action} tài khoản này?`
+    )) {
       return;
     }
 
@@ -558,10 +569,8 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const sub = this.userService.changeStatus(
-      user.userId,
-      nextStatus
-    )
+    const sub = this.userService
+      .changeStatus(user.userId, nextStatus)
       .pipe(
         timeout(15000),
         finalize(() => {
@@ -590,14 +599,16 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // PHÂN CÔNG MANAGER
+  // MANAGER ASSIGNMENT
   // =========================
 
   selectManager(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    const id = Number(select.value);
+    const managerId = Number(select.value);
 
-    this.selectedManagerId = id > 0 ? id : null;
+    this.selectedManagerId = managerId > 0
+      ? managerId
+      : null;
 
     this.selectedMemberIds = [];
     this.selectedProjectIds = [];
@@ -613,67 +624,40 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   private loadManagerAssignments(managerId: number): void {
-    const membersSub = this.userService.getManagerMembers(managerId)
+    const sub = forkJoin({
+      members: this.userService.getManagerMembers(managerId),
+      projects: this.userService.getManagerProjects(managerId)
+    })
       .pipe(timeout(15000))
       .subscribe({
-        next: (response: any) => {
-          const list = this.toArray(response);
+        next: ({ members, projects }) => {
+          this.assignedMemberIds = members
+            .map(id => Number(id))
+            .filter(id => id > 0);
 
-          this.assignedMemberIds = list
-            .map((item: any) => Number(
-              typeof item === 'number'
-                ? item
-                : item.userId ?? item.memberId ?? item.id
-            ))
-            .filter((id: number) => id > 0);
+          this.assignedProjectIds = projects
+            .map(id => Number(id))
+            .filter(id => id > 0);
 
-          this.selectedMemberIds = [...this.assignedMemberIds];
+          this.selectedMemberIds = [
+            ...this.assignedMemberIds
+          ];
+
+          this.selectedProjectIds = [
+            ...this.assignedProjectIds
+          ];
+
           this.cdr.markForCheck();
         },
         error: (error: unknown) => {
           this.errorMessage = this.getErrorMessage(
             error,
-            'Không thể tải danh sách Member được phân công.'
+            'Không thể tải phân công của Manager.'
           );
         }
       });
 
-    const projectsSub = this.userService.getManagerProjects(managerId)
-      .pipe(timeout(15000))
-      .subscribe({
-        next: (response: any) => {
-          const list = this.toArray(response);
-
-          this.assignedProjectIds = list
-            .map((item: any) => Number(
-              typeof item === 'number'
-                ? item
-                : item.projectId ?? item.id
-            ))
-            .filter((id: number) => id > 0);
-
-          this.selectedProjectIds = [...this.assignedProjectIds];
-          this.cdr.markForCheck();
-        },
-        error: (error: unknown) => {
-          this.errorMessage = this.getErrorMessage(
-            error,
-            'Không thể tải danh sách Project được phân công.'
-          );
-        }
-      });
-
-    this.subscriptions.add(membersSub);
-    this.subscriptions.add(projectsSub);
-  }
-
-  private toArray(response: any): any[] {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.content)) return response.content;
-    if (Array.isArray(response?.members)) return response.members;
-    if (Array.isArray(response?.projects)) return response.projects;
-
-    return [];
+    this.subscriptions.add(sub);
   }
 
   toggleMember(memberId: number, event: Event): void {
@@ -687,9 +671,8 @@ export class UsersComponent implements OnInit, OnDestroy {
         ];
       }
     } else {
-      this.selectedMemberIds = this.selectedMemberIds.filter(
-        id => id !== memberId
-      );
+      this.selectedMemberIds =
+        this.selectedMemberIds.filter(id => id !== memberId);
     }
   }
 
@@ -704,23 +687,25 @@ export class UsersComponent implements OnInit, OnDestroy {
         ];
       }
     } else {
-      this.selectedProjectIds = this.selectedProjectIds.filter(
-        id => id !== projectId
-      );
+      this.selectedProjectIds =
+        this.selectedProjectIds.filter(id => id !== projectId);
     }
   }
 
   saveMembers(): void {
-    if (!this.selectedManagerId || this.saving) return;
+    if (!this.selectedManagerId || this.saving) {
+      return;
+    }
 
     this.saving = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    const sub = this.userService.assignMembers(
-      this.selectedManagerId,
-      this.selectedMemberIds
-    )
+    const sub = this.userService
+      .assignMembers(
+        this.selectedManagerId,
+        this.selectedMemberIds
+      )
       .pipe(
         timeout(15000),
         finalize(() => {
@@ -730,8 +715,12 @@ export class UsersComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
-          this.assignedMemberIds = [...this.selectedMemberIds];
-          this.successMessage = 'Lưu phân công Member thành công.';
+          this.assignedMemberIds = [
+            ...this.selectedMemberIds
+          ];
+
+          this.successMessage =
+            'Lưu phân công Member thành công.';
         },
         error: (error: unknown) => {
           this.errorMessage = this.getErrorMessage(
@@ -745,16 +734,19 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   saveProjects(): void {
-    if (!this.selectedManagerId || this.saving) return;
+    if (!this.selectedManagerId || this.saving) {
+      return;
+    }
 
     this.saving = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    const sub = this.userService.assignProjects(
-      this.selectedManagerId,
-      this.selectedProjectIds
-    )
+    const sub = this.userService
+      .assignProjects(
+        this.selectedManagerId,
+        this.selectedProjectIds
+      )
       .pipe(
         timeout(15000),
         finalize(() => {
@@ -764,8 +756,12 @@ export class UsersComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
-          this.assignedProjectIds = [...this.selectedProjectIds];
-          this.successMessage = 'Lưu phân công Project thành công.';
+          this.assignedProjectIds = [
+            ...this.selectedProjectIds
+          ];
+
+          this.successMessage =
+            'Lưu phân công Project thành công.';
         },
         error: (error: unknown) => {
           this.errorMessage = this.getErrorMessage(
@@ -781,25 +777,22 @@ export class UsersComponent implements OnInit, OnDestroy {
   removeMember(memberId: number): void {
     if (!this.selectedManagerId) return;
 
-    const sub = this.userService.removeMember(
-      this.selectedManagerId,
-      memberId
-    )
+    const sub = this.userService
+      .removeMember(this.selectedManagerId, memberId)
       .pipe(
         timeout(15000),
         finalize(() => this.cdr.markForCheck())
       )
       .subscribe({
         next: () => {
-          this.assignedMemberIds = this.assignedMemberIds.filter(
-            id => id !== memberId
-          );
+          this.assignedMemberIds =
+            this.assignedMemberIds.filter(id => id !== memberId);
 
-          this.selectedMemberIds = this.selectedMemberIds.filter(
-            id => id !== memberId
-          );
+          this.selectedMemberIds =
+            this.selectedMemberIds.filter(id => id !== memberId);
 
-          this.successMessage = 'Đã thu hồi phân công Member.';
+          this.successMessage =
+            'Đã thu hồi phân công Member.';
         },
         error: (error: unknown) => {
           this.errorMessage = this.getErrorMessage(
@@ -815,25 +808,22 @@ export class UsersComponent implements OnInit, OnDestroy {
   removeProject(projectId: number): void {
     if (!this.selectedManagerId) return;
 
-    const sub = this.userService.removeProject(
-      this.selectedManagerId,
-      projectId
-    )
+    const sub = this.userService
+      .removeProject(this.selectedManagerId, projectId)
       .pipe(
         timeout(15000),
         finalize(() => this.cdr.markForCheck())
       )
       .subscribe({
         next: () => {
-          this.assignedProjectIds = this.assignedProjectIds.filter(
-            id => id !== projectId
-          );
+          this.assignedProjectIds =
+            this.assignedProjectIds.filter(id => id !== projectId);
 
-          this.selectedProjectIds = this.selectedProjectIds.filter(
-            id => id !== projectId
-          );
+          this.selectedProjectIds =
+            this.selectedProjectIds.filter(id => id !== projectId);
 
-          this.successMessage = 'Đã thu hồi phân công Project.';
+          this.successMessage =
+            'Đã thu hồi phân công Project.';
         },
         error: (error: unknown) => {
           this.errorMessage = this.getErrorMessage(
@@ -847,7 +837,9 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   userNameById(userId: number): string {
-    const user = this.users.find(item => item.userId === userId);
+    const user = this.users.find(
+      item => item.userId === userId
+    );
 
     return user
       ? `${user.fullName || user.username} (#${userId})`
@@ -865,7 +857,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // XỬ LÝ LỖI API
+  // ERROR HANDLING
   // =========================
 
   private getErrorMessage(
