@@ -163,10 +163,6 @@ export class UsersComponent implements OnInit, OnDestroy {
     }
   }
 
-  // =========================
-  // LOAD PROJECTS
-  // =========================
-
   private loadProjects(): void {
     const sub = this.projectService.getProjectOptions()
       .pipe(timeout(15000))
