@@ -50,7 +50,7 @@ interface Customer {
   customerId: number;
   customerCode: string;
   customerName: string;
-  description?: string;
+  description?: string | null;
   customerStatus: 'ACTIVE' | 'INACTIVE';
 }
 

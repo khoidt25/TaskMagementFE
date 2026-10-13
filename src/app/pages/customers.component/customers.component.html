@@ -1,1 +1,452 @@
-<p>customers.component works!</p>
+
+<div class="app-layout">
+   <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span>Workspace</span>
+        <span class="breadcrumb-separator">/</span>
+        <strong>Quản lý khách hàng</strong>
+      </div>
+
+      <div class="topbar-actions">
+        <button
+          type="button"
+          class="icon-button"
+          title="Tải lại dữ liệu"
+          (click)="refresh()"
+          [disabled]="loading">
+          ↻
+        </button>
+        <div class="user-avatar">K</div>
+      </div>
+    </header>
+
+    <section class="page-content">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">CUSTOMER MANAGEMENT</div>
+          <h1>Quản lý khách hàng</h1>
+          <p>Quản lý thông tin, trạng thái và dữ liệu khách hàng của nhóm.</p>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="startCreateCustomer()">
+          <span>＋</span> Thêm khách hàng
+        </button>
+      </div>
+
+      <div class="message error-message"
+           *ngIf="errorMessage"
+           role="alert">
+        <span>!</span>
+        <span>{{ errorMessage }}</span>
+        <button type="button" (click)="errorMessage = ''">×</button>
+      </div>
+
+      <div class="message success-message"
+           *ngIf="successMessage"
+           role="status">
+        <span>✓</span>
+        <span>{{ successMessage }}</span>
+        <button type="button" (click)="successMessage = ''">×</button>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue-icon">♧</div>
+          <div class="stat-info">
+            <span>Tổng khách hàng</span>
+            <strong>{{ totalElements }}</strong>
+            <small>Theo bộ lọc hiện tại</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green-icon">✓</div>
+          <div class="stat-info">
+            <span>Đang hoạt động</span>
+            <strong>{{ activeCount }}</strong>
+            <small>Trong trang hiện tại</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange-icon">Ⅱ</div>
+          <div class="stat-info">
+            <span>Ngừng hoạt động</span>
+            <strong>{{ inactiveCount }}</strong>
+            <small>Trong trang hiện tại</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple-icon">⌕</div>
+          <div class="stat-info">
+            <span>Trang hiện tại</span>
+            <strong>{{ totalPages ? page + 1 : 0 }}</strong>
+            <small>{{ totalPages }} trang dữ liệu</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-grid">
+        <!-- Customer list -->
+        <section class="panel customer-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Danh sách khách hàng</h2>
+              <p>Chọn khách hàng để xem thông tin hoặc chỉnh sửa.</p>
+            </div>
+            <span class="count-badge">{{ totalElements }}</span>
+          </div>
+
+          <div class="customer-filters">
+            <div class="filter-field keyword-field">
+              <label for="customerKeyword">Từ khóa</label>
+              <input
+                id="customerKeyword"
+                name="keyword"
+                type="text"
+                [(ngModel)]="keyword"
+                (keydown.enter)="applyFilters()"
+                placeholder="Mã hoặc tên khách hàng..." />
+            </div>
+
+            <div class="filter-field">
+              <label for="customerStatus">Trạng thái</label>
+              <select
+                id="customerStatus"
+                name="customerStatus"
+                [(ngModel)]="filterStatus">
+                <option value="">Tất cả trạng thái</option>
+                <option value="ACTIVE">Đang hoạt động</option>
+                <option value="INACTIVE">Ngừng hoạt động</option>
+              </select>
+            </div>
+
+            <div class="filter-actions">
+              <button
+                type="button"
+                class="primary-button"
+                (click)="applyFilters()"
+                [disabled]="loading">
+                {{ loading ? 'Đang tìm...' : 'Tìm kiếm' }}
+              </button>
+
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="resetFilters()"
+                [disabled]="loading">
+                Xóa lọc
+              </button>
+            </div>
+          </div>
+
+          <div class="customer-list" *ngIf="!loading; else customerLoading">
+            <button
+              type="button"
+              class="customer-item"
+              *ngFor="let customer of customers; trackBy: trackCustomer"
+              [class.selected]="selectedCustomer?.customerId === customer.customerId"
+              (click)="selectCustomer(customer)">
+
+              <div class="customer-item-top">
+                <span class="customer-symbol">♧</span>
+                <span class="customer-code">{{ customer.customerCode }}</span>
+                <span
+                  class="mini-status"
+                  [ngClass]="statusClass(customer.customerStatus)">
+                  {{ statusLabel(customer.customerStatus) }}
+                </span>
+              </div>
+
+              <div class="customer-item-name">
+                {{ customer.customerName }}
+              </div>
+
+              <p class="customer-description">
+                {{ customer.description || 'Chưa có mô tả khách hàng.' }}
+              </p>
+
+              <div class="customer-item-footer">
+                <span>ID: {{ customer.customerId }}</span>
+                <span>
+                  {{ customer.createdAt
+                    ? (customer.createdAt | date:'dd/MM/yyyy')
+                    : 'Chưa có ngày tạo' }}
+                </span>
+              </div>
+            </button>
+
+            <div class="empty-state" *ngIf="customers.length === 0">
+              <div class="empty-icon">⌕</div>
+              <strong>Không tìm thấy khách hàng</strong>
+              <span>Thử từ khóa khác hoặc thêm khách hàng mới.</span>
+            </div>
+          </div>
+
+          <ng-template #customerLoading>
+            <div class="loading-state">
+              <span class="loading-spinner"></span>
+              Đang tải danh sách khách hàng...
+            </div>
+          </ng-template>
+
+          <!-- Pagination -->
+          <div class="task-pagination"
+               *ngIf="!loading && totalElements > 0">
+            <div class="pagination-info">
+              Hiển thị
+              <strong>{{ firstItemNumber }}–{{ lastItemNumber }}</strong>
+              / {{ totalElements }}
+            </div>
+
+            <div class="pagination-controls">
+              <select
+                [ngModel]="pageSize"
+                (ngModelChange)="changePageSize($event)"
+                aria-label="Số khách hàng mỗi trang">
+                <option [ngValue]="10">10 / trang</option>
+                <option [ngValue]="20">20 / trang</option>
+                <option [ngValue]="50">50 / trang</option>
+              </select>
+
+              <button
+                type="button"
+                [disabled]="page <= 0 || loading"
+                (click)="previousPage()"
+                aria-label="Trang trước">‹</button>
+
+              <span class="page-number">
+                {{ page + 1 }} / {{ totalPages }}
+              </span>
+
+              <button
+                type="button"
+                [disabled]="page >= totalPages - 1 || loading"
+                (click)="nextPage()"
+                aria-label="Trang sau">›</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Customer details -->
+        <section class="panel detail-panel">
+          <ng-container *ngIf="selectedCustomer as customer; else noCustomer">
+            <div class="detail-heading">
+              <div class="detail-heading-main">
+                <div class="eyebrow">CUSTOMER DETAILS</div>
+                <span class="customer-code">{{ customer.customerCode }}</span>
+                <h2>{{ customer.customerName }}</h2>
+                <p>
+                  {{ customer.description || 'Chưa có mô tả khách hàng.' }}
+                </p>
+              </div>
+
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(customer.customerStatus)">
+                {{ statusLabel(customer.customerStatus) }}
+              </span>
+            </div>
+
+            <div class="detail-actions">
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="startEditCustomer(customer)">
+                ✎ Sửa khách hàng
+              </button>
+
+              <button
+                type="button"
+                class="danger-button"
+                (click)="deleteCustomer(customer)"
+                [disabled]="deleting">
+                × {{ deleting ? 'Đang xử lý...' : 'Xóa khách hàng' }}
+              </button>
+            </div>
+
+            <div class="detail-meta">
+              <div class="meta-item">
+                <span>Mã khách hàng</span>
+                <strong>{{ customer.customerCode }}</strong>
+              </div>
+
+              <div class="meta-item">
+                <span>Customer ID</span>
+                <strong>#{{ customer.customerId }}</strong>
+              </div>
+
+              <div class="meta-item">
+                <span>Trạng thái</span>
+                <strong>{{ statusLabel(customer.customerStatus) }}</strong>
+              </div>
+
+              <div class="meta-item">
+                <span>Ngày tạo</span>
+                <strong>
+                  {{ customer.createdAt
+                    ? (customer.createdAt | date:'dd/MM/yyyy HH:mm')
+                    : 'Chưa có thông tin' }}
+                </strong>
+              </div>
+
+              <div class="meta-item">
+                <span>Cập nhật lần cuối</span>
+                <strong>
+                  {{ customer.updatedAt
+                    ? (customer.updatedAt | date:'dd/MM/yyyy HH:mm')
+                    : 'Chưa có thông tin' }}
+                </strong>
+              </div>
+            </div>
+
+            <div class="description-panel">
+              <h3>Mô tả khách hàng</h3>
+              <p>{{ customer.description || 'Chưa có mô tả khách hàng.' }}</p>
+            </div>
+
+            <div class="detail-footer">
+              <span class="detail-dot"></span>
+              Đang xem thông tin khách hàng đã chọn
+            </div>
+          </ng-container>
+
+          <ng-template #noCustomer>
+            <div class="empty-state no-customer">
+              <div class="empty-icon">♧</div>
+              <strong>Chưa chọn khách hàng</strong>
+              <span>Chọn một khách hàng trong danh sách để xem chi tiết.</span>
+              <button
+                type="button"
+                class="primary-button"
+                (click)="startCreateCustomer()">
+                ＋ Thêm khách hàng
+              </button>
+            </div>
+          </ng-template>
+        </section>
+      </div>
+
+      <!-- Create / Update form -->
+      <section class="panel customer-form-panel" *ngIf="showForm">
+        <div class="panel-heading form-panel-heading">
+          <div>
+            <div class="eyebrow">
+              {{ editingCustomerId !== null
+                ? 'UPDATE CUSTOMER'
+                : 'CREATE CUSTOMER' }}
+            </div>
+
+            <h2>
+              {{ editingCustomerId !== null
+                ? 'Cập nhật khách hàng'
+                : 'Thêm khách hàng mới' }}
+            </h2>
+
+            <p>Nhập thông tin khách hàng. Các trường có dấu * là bắt buộc.</p>
+          </div>
+
+          <button
+            type="button"
+            class="close-form-button"
+            (click)="cancelForm()"
+            aria-label="Đóng biểu mẫu">×</button>
+        </div>
+
+        <form #customerForm="ngForm" (ngSubmit)="saveCustomer()">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="customerCode">
+                Mã khách hàng <span class="required-mark">*</span>
+              </label>
+
+              <input
+                id="customerCode"
+                name="customerCode"
+                type="text"
+                [(ngModel)]="form.customerCode"
+                placeholder="Ví dụ: CUS-001"
+                maxlength="50"
+                required />
+            </div>
+
+            <div class="form-field">
+              <label for="customerName">
+                Tên khách hàng <span class="required-mark">*</span>
+              </label>
+
+              <input
+                id="customerName"
+                name="customerName"
+                type="text"
+                [(ngModel)]="form.customerName"
+                placeholder="Nhập tên khách hàng"
+                maxlength="200"
+                required />
+            </div>
+
+            <div class="form-field">
+              <label for="formCustomerStatus">Trạng thái</label>
+
+              <select
+                id="formCustomerStatus"
+                name="formCustomerStatus"
+                [(ngModel)]="form.customerStatus">
+                <option value="ACTIVE">Đang hoạt động</option>
+                <option value="INACTIVE">Ngừng hoạt động</option>
+              </select>
+            </div>
+
+            <div class="form-field field-wide">
+              <label for="customerDescription">Mô tả khách hàng</label>
+
+              <textarea
+                id="customerDescription"
+                name="description"
+                rows="5"
+                [(ngModel)]="form.description"
+                placeholder="Nhập thông tin mô tả khách hàng...">
+              </textarea>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <span class="required-hint">
+              <span class="required-mark">*</span> Trường bắt buộc
+            </span>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="cancelForm()"
+                [disabled]="saving">
+                Hủy
+              </button>
+
+              <button
+                type="submit"
+                class="primary-button"
+                [disabled]="saving || !customerForm.valid">
+                {{ saving
+                  ? 'Đang lưu...'
+                  : editingCustomerId !== null
+                    ? '✓ Lưu thay đổi'
+                    : '＋ Thêm khách hàng' }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+</div>
+
