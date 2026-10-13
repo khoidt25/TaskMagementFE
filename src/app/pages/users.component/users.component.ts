@@ -1,12 +1,35 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, Subscription, timeout } from 'rxjs';
+
+import { SidebarComponent } from '../sidebar/sidebar';
 import {
   UserAdminService,
   UserResponse
 } from '../../services/user-admin.service';
-import { SidebarComponent } from '../sidebar/sidebar';
+
+interface UserForm {
+  userId?: number;
+  username: string;
+  email: string;
+  password: string;
+  roleId: number;
+}
+
+interface ProjectResponse {
+  projectId: number;
+  projectName: string;
+}
+
+type UserStatus = 'ACTIVE' | 'INACTIVE';
+type UserRole = 'ADMIN' | 'MANAGER' | 'MEMBER';
 
 @Component({
   selector: 'app-user-management',
@@ -15,77 +38,326 @@ import { SidebarComponent } from '../sidebar/sidebar';
   templateUrl: './users.component.html',
   styleUrl: './users.component.css'
 })
-export class UsersComponent implements OnInit {
+export class UsersComponent implements OnInit, OnDestroy {
   private readonly userService = inject(UserAdminService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly subscriptions = new Subscription();
 
+  users: UserResponse[] = [];
+  filteredUsers: UserResponse[] = [];
+  managers: UserResponse[] = [];
+  members: UserResponse[] = [];
+  projects: ProjectResponse[] = [];
+
+  selectedUser: UserResponse | null = null;
+  selectedManagerId: number | null = null;
+
+  // Tab
   activeTab: 'users' | 'assignments' = 'users';
-  
+
+  // Trạng thái giao diện
   loading = false;
   saving = false;
   deleting = false;
+  showForm = false;
+  isEditMode = false;
 
   errorMessage = '';
   successMessage = '';
 
-  users: UserResponse[] = [];
-  filteredUsers: UserResponse[] = [];
-  selectedUser: UserResponse | null = null;
-
+  // Bộ lọc
   keyword = '';
   filterRole = '';
   filterStatus = '';
 
+  // Phân trang, dùng phân trang phía frontend vì API hiện tại
+  // GET /api/users/all trả về danh sách List<UserResponse>.
   page = 0;
   pageSize = 10;
   totalElements = 0;
+  totalPages = 0;
 
-  showForm = false;
-
-  form = {
-    username: '',
-    email: '',
-    password: '',
-    roleId: 3
-  };
-
-  managers: UserResponse[] = [];
-  members: UserResponse[] = [];
-
-  selectedManagerId: number | null = null;
+  // Phân công Manager
   selectedMemberIds: number[] = [];
   selectedProjectIds: number[] = [];
 
   assignedMemberIds: number[] = [];
   assignedProjectIds: number[] = [];
 
-  // Kết nối mảng này với ProjectService hiện có của dự án.
-  projects: Array<{
-    projectId: number;
-    projectName: string;
-  }> = [];
+  form: UserForm = this.emptyForm();
 
   ngOnInit(): void {
-    this.refresh();
+    this.loadUsers();
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.totalElements / this.pageSize);
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
-  get activeCount(): number {
+  private emptyForm(): UserForm {
+    return {
+      username: '',
+      email: '',
+      password: '',
+      roleId: 3
+    };
+  }
+
+  // =========================
+  // TẢI DỮ LIỆU NGƯỜI DÙNG
+  // =========================
+
+  loadUsers(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    const sub = this.userService.getAll()
+      .pipe(
+        timeout(15000),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (response: any) => {
+          // Hỗ trợ cả List<UserResponse> và response có content.
+          const list: UserResponse[] = Array.isArray(response)
+            ? response
+            : Array.isArray(response?.content)
+              ? response.content
+              : [];
+
+          this.users = list;
+
+          this.managers = list.filter(
+            user => this.normalizeRole(this.roleOf(user)) === 'MANAGER'
+          );
+
+          this.members = list.filter(
+            user => this.normalizeRole(this.roleOf(user)) === 'MEMBER'
+          );
+
+          // Nếu tài khoản đang chọn không còn trong danh sách, bỏ chọn.
+          if (this.selectedUser) {
+            this.selectedUser =
+              list.find(u => u.userId === this.selectedUser?.userId) ?? null;
+          }
+
+          this.applyFilters();
+        },
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể tải danh sách người dùng.'
+          );
+        }
+      });
+
+    this.subscriptions.add(sub);
+  }
+
+  refresh(): void {
+    this.loadUsers();
+  }
+
+  // =========================
+  // THỐNG KÊ
+  // =========================
+
+  get activeUsersCount(): number {
     return this.users.filter(
       user => this.statusOf(user) === 'ACTIVE'
     ).length;
   }
 
-  get activeUsersCount(): number {
-    return this.activeCount;
+  get activeCount(): number {
+    return this.activeUsersCount;
   }
 
   get inactiveCount(): number {
     return this.users.filter(
-      user => this.statusOf(user) !== 'ACTIVE'
+      user => this.statusOf(user) === 'INACTIVE'
     ).length;
+  }
+
+  // =========================
+  // VAI TRÒ VÀ TRẠNG THÁI
+  // =========================
+
+  roleOf(user: UserResponse): string {
+    const item = user as any;
+
+    const value =
+      item.roleName ??
+      item.role?.roleName ??
+      item.role?.name ??
+      item.role ??
+      item.roleCode ??
+      '';
+
+    const role = String(value).toUpperCase();
+
+    if (role.includes('ADMIN')) {
+      return 'ADMIN';
+    }
+
+    if (role.includes('MANAGER')) {
+      return 'MANAGER';
+    }
+
+    if (role.includes('MEMBER')) {
+      return 'MEMBER';
+    }
+
+    // Dùng roleId nếu backend không trả roleName.
+    const roleId = Number(item.roleId ?? item.role?.roleId);
+
+    if (roleId === 1) return 'ADMIN';
+    if (roleId === 2) return 'MANAGER';
+    if (roleId === 3) return 'MEMBER';
+
+    return 'MEMBER';
+  }
+
+  private normalizeRole(value: string): UserRole {
+    const role = value.toUpperCase();
+
+    if (role === 'ADMIN') return 'ADMIN';
+    if (role === 'MANAGER') return 'MANAGER';
+
+    return 'MEMBER';
+  }
+
+  private getRoleId(user: UserResponse): number {
+    const item = user as any;
+    const roleId = Number(item.roleId ?? item.role?.roleId);
+
+    if ([1, 2, 3].includes(roleId)) {
+      return roleId;
+    }
+
+    switch (this.roleOf(user)) {
+      case 'ADMIN':
+        return 1;
+      case 'MANAGER':
+        return 2;
+      default:
+        return 3;
+    }
+  }
+
+  statusOf(user: UserResponse): UserStatus {
+    const item = user as any;
+    const value = String(
+      item.status ?? item.userStatus ?? item.accountStatus ?? 'ACTIVE'
+    ).toUpperCase();
+
+    return value === 'INACTIVE' || value === 'DISABLED'
+      ? 'INACTIVE'
+      : 'ACTIVE';
+  }
+
+  roleLabel(user: UserResponse): string {
+    const role = this.roleOf(user);
+
+    if (role === 'ADMIN') return 'Admin';
+    if (role === 'MANAGER') return 'Manager';
+
+    return 'Member';
+  }
+
+  statusLabel(status: string): string {
+    return status === 'ACTIVE'
+      ? 'Đang hoạt động'
+      : 'Ngừng hoạt động';
+  }
+
+  roleClass(user: UserResponse): string {
+    return this.roleOf(user).toLowerCase();
+  }
+
+  statusClass(status: string): string {
+    return status === 'ACTIVE' ? 'active' : 'inactive';
+  }
+
+  // =========================
+  // TÌM KIẾM VÀ PHÂN TRANG
+  // =========================
+
+  applyFilters(): void {
+    const keyword = this.keyword.trim().toLowerCase();
+
+    const result = this.users.filter(user => {
+      const item = user as any;
+
+      const matchesKeyword =
+        !keyword ||
+        String(item.userId ?? '').toLowerCase().includes(keyword) ||
+        String(item.username ?? '').toLowerCase().includes(keyword) ||
+        String(item.fullName ?? '').toLowerCase().includes(keyword) ||
+        String(item.email ?? '').toLowerCase().includes(keyword);
+
+      const matchesRole =
+        !this.filterRole ||
+        this.roleOf(user) === this.filterRole;
+
+      const matchesStatus =
+        !this.filterStatus ||
+        this.statusOf(user) === this.filterStatus;
+
+      return matchesKeyword && matchesRole && matchesStatus;
+    });
+
+    this.totalElements = result.length;
+    this.totalPages = Math.max(
+      1,
+      Math.ceil(this.totalElements / this.pageSize)
+    );
+
+    if (this.page >= this.totalPages) {
+      this.page = this.totalPages - 1;
+    }
+
+    if (this.page < 0) {
+      this.page = 0;
+    }
+
+    const start = this.page * this.pageSize;
+
+    this.filteredUsers = result.slice(
+      start,
+      start + this.pageSize
+    );
+  }
+
+  resetFilters(): void {
+    this.keyword = '';
+    this.filterRole = '';
+    this.filterStatus = '';
+    this.page = 0;
+
+    this.applyFilters();
+  }
+
+  changePageSize(size: number | string): void {
+    this.pageSize = Number(size) || 10;
+    this.page = 0;
+    this.applyFilters();
+  }
+
+  previousPage(): void {
+    if (this.page > 0) {
+      this.page--;
+      this.applyFilters();
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages - 1) {
+      this.page++;
+      this.applyFilters();
+    }
   }
 
   get firstItemNumber(): number {
@@ -101,444 +373,531 @@ export class UsersComponent implements OnInit {
     );
   }
 
-  refresh(): void {
-    this.loading = true;
-    this.errorMessage = '';
-
-    this.userService
-      .getAll()
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe({
-        next: data => {
-          this.users = data ?? [];
-
-          this.managers = this.users.filter(
-            user => this.roleOf(user) === 'MANAGER'
-          );
-
-          this.members = this.users.filter(
-            user => this.roleOf(user) === 'MEMBER'
-          );
-
-          this.applyFilters(false);
-
-          if (this.selectedUser) {
-            this.selectedUser =
-              this.users.find(
-                user => user.userId === this.selectedUser?.userId
-              ) ?? null;
-          }
-        },
-        error: error => {
-          console.error(error);
-          this.errorMessage =
-            error?.error?.error ??
-            'Không tải được danh sách người dùng. Hãy kiểm tra API và quyền ADMIN.';
-        }
-      });
+  trackUser(_index: number, user: UserResponse): number {
+    return user.userId;
   }
 
-  roleOf(user: UserResponse): string {
-    const raw = String(
-      user.roleName ?? user['role'] ?? ''
-    ).toUpperCase();
-
-    if (raw.includes('ADMIN')) {
-      return 'ADMIN';
-    }
-
-    if (raw.includes('MANAGER') || raw.includes('LEADER')) {
-      return 'MANAGER';
-    }
-
-    if (raw.includes('MEMBER')) {
-      return 'MEMBER';
-    }
-
-    const id = Number(user.roleId ?? user['roleId']);
-
-    // Sửa các ID này nếu bảng roles của bạn dùng ID khác.
-    if (id === 1) return 'ADMIN';
-    if (id === 2) return 'MANAGER';
-    if (id === 3) return 'MEMBER';
-
-    return raw || 'UNKNOWN';
-  }
-
-  statusOf(user: UserResponse): string {
-    return String(
-      user.status ?? user['userStatus'] ?? 'UNKNOWN'
-    ).toUpperCase();
-  }
-
-  roleIdOf(user: UserResponse): number {
-    const id = Number(user.roleId ?? user['roleId']);
-
-    if (id) {
-      return id;
-    }
-
-    const roleIds: Record<string, number> = {
-      ADMIN: 1,
-      MANAGER: 2,
-      MEMBER: 3
-    };
-
-    return roleIds[this.roleOf(user)] ?? 3;
-  }
-
-  applyFilters(resetPage = true): void {
-    if (resetPage) {
-      this.page = 0;
-    }
-
-    const key = this.keyword.trim().toLowerCase();
-
-    const result = this.users.filter(user => {
-      const matchesKeyword =
-        !key ||
-        String(user.username ?? '').toLowerCase().includes(key) ||
-        String(user.fullName ?? '').toLowerCase().includes(key) ||
-        String(user.email ?? '').toLowerCase().includes(key) ||
-        String(user.userId ?? '').includes(key);
-
-      const matchesRole =
-        !this.filterRole || this.roleOf(user) === this.filterRole;
-
-      const matchesStatus =
-        !this.filterStatus ||
-        this.statusOf(user) === this.filterStatus;
-
-      return matchesKeyword && matchesRole && matchesStatus;
-    });
-
-    this.totalElements = result.length;
-
-    if (this.page >= this.totalPages) {
-      this.page = Math.max(0, this.totalPages - 1);
-    }
-
-    const start = this.page * this.pageSize;
-    this.filteredUsers = result.slice(start, start + this.pageSize);
-  }
-
-  resetFilters(): void {
-    this.keyword = '';
-    this.filterRole = '';
-    this.filterStatus = '';
-    this.page = 0;
-
-    this.applyFilters(false);
-  }
-
-  changePageSize(size: number): void {
-    this.pageSize = Number(size);
-    this.page = 0;
-    this.applyFilters(false);
-  }
-
-  previousPage(): void {
-    if (this.page > 0) {
-      this.page--;
-      this.applyFilters(false);
-    }
-  }
-
-  nextPage(): void {
-    if (this.page < this.totalPages - 1) {
-      this.page++;
-      this.applyFilters(false);
-    }
-  }
+  // =========================
+  // CHỌN NGƯỜI DÙNG
+  // =========================
 
   selectUser(user: UserResponse): void {
     this.selectedUser = user;
-    this.showForm = false;
-  }
-
-  startCreate(): void {
-    this.form = {
-      username: '',
-      email: '',
-      password: '',
-      roleId: 3
-    };
-
-    this.showForm = true;
     this.errorMessage = '';
     this.successMessage = '';
   }
 
-  startEdit(user: UserResponse): void {
-    this.errorMessage =
-      'Backend hiện chưa có API cập nhật username/email/mật khẩu. Bạn vẫn có thể đổi vai trò hoặc trạng thái.';
-    this.selectedUser = user;
+  // =========================
+  // TẠO NGƯỜI DÙNG
+  // =========================
+
+  startCreate(): void {
+    this.isEditMode = false;
+    this.showForm = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.form = this.emptyForm();
   }
 
   cancelForm(): void {
     this.showForm = false;
-    this.errorMessage = '';
+    this.isEditMode = false;
+    this.form = this.emptyForm();
   }
 
   saveUser(): void {
-    if (
-      !this.form.username.trim() ||
-      !this.form.email.trim() ||
-      !this.form.password
-    ) {
+    if (this.saving) return;
+
+    if (this.isEditMode) {
       this.errorMessage =
-        'Vui lòng nhập username, email và mật khẩu.';
+        'Backend hiện chưa có API cập nhật username/email. ' +
+        'Bạn vẫn có thể đổi vai trò tại mục Quản lý vai trò.';
       return;
     }
+
+    const username = this.form.username.trim();
+    const email = this.form.email.trim();
+
+    if (!username || !email || !this.form.password) {
+      this.errorMessage = 'Vui lòng nhập đầy đủ thông tin bắt buộc.';
+      return;
+    }
+
+    if (this.form.password.length < 6) {
+      this.errorMessage = 'Mật khẩu phải có ít nhất 6 ký tự.';
+      return;
+    }
+
+    const payload = {
+      username,
+      email,
+      password: this.form.password,
+      roleId: Number(this.form.roleId)
+    };
 
     this.saving = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.userService
-      .create(this.form)
-      .pipe(finalize(() => (this.saving = false)))
+    const sub = this.userService.create(payload)
+      .pipe(
+        timeout(15000),
+        finalize(() => {
+          this.saving = false;
+          this.cdr.markForCheck();
+        })
+      )
       .subscribe({
         next: () => {
           this.showForm = false;
+          this.isEditMode = false;
+          this.form = this.emptyForm();
           this.successMessage = 'Tạo tài khoản thành công.';
-          this.refresh();
+          this.page = 0;
+          this.loadUsers();
         },
-        error: error => {
-          console.error(error);
-          this.errorMessage =
-            error?.error?.error ??
-            'Không thể tạo tài khoản. Hãy kiểm tra UserCreateRequest của backend.';
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể tạo tài khoản.'
+          );
         }
       });
+
+    this.subscriptions.add(sub);
   }
 
-  changeRole(user: UserResponse, event: Event): void {
-    const roleName = (event.target as HTMLSelectElement).value;
+  // =========================
+  // SỬA THÔNG TIN
+  // =========================
 
+  startEdit(user: UserResponse): void {
+    this.selectedUser = user;
+    this.isEditMode = true;
+    this.showForm = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.form = {
+      userId: user.userId,
+      username: user.username ?? '',
+      email: user.email ?? '',
+      password: '',
+      roleId: this.getRoleId(user)
+    };
+
+    this.errorMessage =
+      'Bạn đang mở thông tin chỉnh sửa. Backend hiện chưa có API ' +
+      'cập nhật username/email; chức năng lưu chỉnh sửa sẽ cần API PUT riêng.';
+  }
+
+  // =========================
+  // ĐỔI VAI TRÒ
+  // =========================
+
+  changeRole(user: UserResponse, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const role = select.value;
     const roleIds: Record<string, number> = {
       ADMIN: 1,
       MANAGER: 2,
       MEMBER: 3
     };
 
-    const roleId = roleIds[roleName];
+    const roleId = roleIds[role];
 
-    if (!roleId || !user.userId) {
+    if (!roleId || role === this.roleOf(user)) {
       return;
     }
 
-    this.userService.changeRole(user.userId, roleId).subscribe({
-      next: () => {
-        this.successMessage = 'Cập nhật vai trò thành công.';
-        this.errorMessage = '';
-        this.refresh();
-      },
-      error: error => {
-        this.errorMessage =
-          error?.error?.error ?? 'Không thể cập nhật vai trò.';
-        this.refresh();
-      }
-    });
-  }
+    this.errorMessage = '';
+    this.successMessage = '';
 
-  toggleStatus(user: UserResponse): void {
-    const nextStatus =
-      this.statusOf(user) === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-
-    this.userService
-      .changeStatus(user.userId, nextStatus)
+    const sub = this.userService.changeRole(user.userId, roleId)
+      .pipe(
+        timeout(15000),
+        finalize(() => this.cdr.markForCheck())
+      )
       .subscribe({
         next: () => {
-          this.successMessage = 'Cập nhật trạng thái thành công.';
-          this.errorMessage = '';
-          this.refresh();
+          this.successMessage = 'Cập nhật vai trò thành công.';
+          this.loadUsers();
         },
-        error: error => {
-          this.errorMessage =
-            error?.error?.error ??
-            'Không thể cập nhật trạng thái.';
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể cập nhật vai trò.'
+          );
+          select.value = this.roleOf(user);
         }
       });
+
+    this.subscriptions.add(sub);
   }
 
-  selectManager(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  // =========================
+  // KHÓA / KÍCH HOẠT TÀI KHOẢN
+  // =========================
 
-    this.selectedManagerId = value ? Number(value) : null;
+  toggleStatus(user: UserResponse): void {
+    if (this.deleting) return;
+
+    const nextStatus: UserStatus =
+      this.statusOf(user) === 'ACTIVE'
+        ? 'INACTIVE'
+        : 'ACTIVE';
+
+    const actionText =
+      nextStatus === 'ACTIVE' ? 'kích hoạt' : 'khóa';
+
+    if (!window.confirm(`Bạn có chắc muốn ${actionText} tài khoản này?`)) {
+      return;
+    }
+
+    this.deleting = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const sub = this.userService.changeStatus(
+      user.userId,
+      nextStatus
+    )
+      .pipe(
+        timeout(15000),
+        finalize(() => {
+          this.deleting = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.successMessage =
+            nextStatus === 'ACTIVE'
+              ? 'Kích hoạt tài khoản thành công.'
+              : 'Khóa tài khoản thành công.';
+
+          this.loadUsers();
+        },
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể thay đổi trạng thái tài khoản.'
+          );
+        }
+      });
+
+    this.subscriptions.add(sub);
+  }
+
+  // =========================
+  // PHÂN CÔNG MANAGER
+  // =========================
+
+  selectManager(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const id = Number(select.value);
+
+    this.selectedManagerId = id > 0 ? id : null;
 
     this.selectedMemberIds = [];
     this.selectedProjectIds = [];
     this.assignedMemberIds = [];
     this.assignedProjectIds = [];
 
-    if (!this.selectedManagerId) {
-      return;
-    }
+    this.errorMessage = '';
+    this.successMessage = '';
 
-    this.loadAssignments();
+    if (this.selectedManagerId !== null) {
+      this.loadManagerAssignments(this.selectedManagerId);
+    }
   }
 
-  loadAssignments(): void {
-    const managerId = this.selectedManagerId;
+  private loadManagerAssignments(managerId: number): void {
+    const membersSub = this.userService.getManagerMembers(managerId)
+      .pipe(timeout(15000))
+      .subscribe({
+        next: (response: any) => {
+          const list = this.toArray(response);
 
-    if (!managerId) {
-      return;
-    }
+          this.assignedMemberIds = list
+            .map((item: any) => Number(
+              typeof item === 'number'
+                ? item
+                : item.userId ?? item.memberId ?? item.id
+            ))
+            .filter((id: number) => id > 0);
 
-    this.userService.getManagerMembers(managerId).subscribe({
-      next: ids => {
-        this.assignedMemberIds = ids ?? [];
-        this.selectedMemberIds = [...this.assignedMemberIds];
-      },
-      error: error => {
-        console.error('Load manager members failed', error);
-      }
-    });
+          this.selectedMemberIds = [...this.assignedMemberIds];
+          this.cdr.markForCheck();
+        },
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể tải danh sách Member được phân công.'
+          );
+        }
+      });
 
-    this.userService.getManagerProjects(managerId).subscribe({
-      next: ids => {
-        this.assignedProjectIds = ids ?? [];
-        this.selectedProjectIds = [...this.assignedProjectIds];
-      },
-      error: error => {
-        console.error('Load manager projects failed', error);
-      }
-    });
+    const projectsSub = this.userService.getManagerProjects(managerId)
+      .pipe(timeout(15000))
+      .subscribe({
+        next: (response: any) => {
+          const list = this.toArray(response);
+
+          this.assignedProjectIds = list
+            .map((item: any) => Number(
+              typeof item === 'number'
+                ? item
+                : item.projectId ?? item.id
+            ))
+            .filter((id: number) => id > 0);
+
+          this.selectedProjectIds = [...this.assignedProjectIds];
+          this.cdr.markForCheck();
+        },
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể tải danh sách Project được phân công.'
+          );
+        }
+      });
+
+    this.subscriptions.add(membersSub);
+    this.subscriptions.add(projectsSub);
   }
 
-  toggleMember(id: number, event: Event): void {
+  private toArray(response: any): any[] {
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response?.content)) return response.content;
+    if (Array.isArray(response?.members)) return response.members;
+    if (Array.isArray(response?.projects)) return response.projects;
+
+    return [];
+  }
+
+  toggleMember(memberId: number, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
 
-    this.selectedMemberIds = checked
-      ? [...new Set([...this.selectedMemberIds, id])]
-      : this.selectedMemberIds.filter(item => item !== id);
+    if (checked) {
+      if (!this.selectedMemberIds.includes(memberId)) {
+        this.selectedMemberIds = [
+          ...this.selectedMemberIds,
+          memberId
+        ];
+      }
+    } else {
+      this.selectedMemberIds = this.selectedMemberIds.filter(
+        id => id !== memberId
+      );
+    }
   }
 
-  toggleProject(id: number, event: Event): void {
+  toggleProject(projectId: number, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
 
-    this.selectedProjectIds = checked
-      ? [...new Set([...this.selectedProjectIds, id])]
-      : this.selectedProjectIds.filter(item => item !== id);
+    if (checked) {
+      if (!this.selectedProjectIds.includes(projectId)) {
+        this.selectedProjectIds = [
+          ...this.selectedProjectIds,
+          projectId
+        ];
+      }
+    } else {
+      this.selectedProjectIds = this.selectedProjectIds.filter(
+        id => id !== projectId
+      );
+    }
   }
 
   saveMembers(): void {
-    if (!this.selectedManagerId) {
-      return;
-    }
+    if (!this.selectedManagerId || this.saving) return;
 
     this.saving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-    this.userService
-      .assignMembers(this.selectedManagerId, this.selectedMemberIds)
-      .pipe(finalize(() => (this.saving = false)))
+    const sub = this.userService.assignMembers(
+      this.selectedManagerId,
+      this.selectedMemberIds
+    )
+      .pipe(
+        timeout(15000),
+        finalize(() => {
+          this.saving = false;
+          this.cdr.markForCheck();
+        })
+      )
       .subscribe({
         next: () => {
+          this.assignedMemberIds = [...this.selectedMemberIds];
           this.successMessage = 'Lưu phân công Member thành công.';
-          this.loadAssignments();
         },
-        error: error => {
-          this.errorMessage =
-            error?.error?.message ??
-            'Không thể phân công Member.';
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể lưu phân công Member.'
+          );
         }
       });
+
+    this.subscriptions.add(sub);
   }
 
   saveProjects(): void {
-    if (!this.selectedManagerId) {
-      return;
-    }
+    if (!this.selectedManagerId || this.saving) return;
 
     this.saving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-    this.userService
-      .assignProjects(this.selectedManagerId, this.selectedProjectIds)
-      .pipe(finalize(() => (this.saving = false)))
+    const sub = this.userService.assignProjects(
+      this.selectedManagerId,
+      this.selectedProjectIds
+    )
+      .pipe(
+        timeout(15000),
+        finalize(() => {
+          this.saving = false;
+          this.cdr.markForCheck();
+        })
+      )
       .subscribe({
         next: () => {
+          this.assignedProjectIds = [...this.selectedProjectIds];
           this.successMessage = 'Lưu phân công Project thành công.';
-          this.loadAssignments();
         },
-        error: error => {
-          this.errorMessage =
-            error?.error?.message ??
-            'Không thể phân công Project.';
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể lưu phân công Project.'
+          );
         }
       });
+
+    this.subscriptions.add(sub);
   }
 
-  removeMember(id: number): void {
-    if (!this.selectedManagerId) {
-      return;
-    }
+  removeMember(memberId: number): void {
+    if (!this.selectedManagerId) return;
 
-    this.userService
-      .removeMember(this.selectedManagerId, id)
+    const sub = this.userService.removeMember(
+      this.selectedManagerId,
+      memberId
+    )
+      .pipe(
+        timeout(15000),
+        finalize(() => this.cdr.markForCheck())
+      )
       .subscribe({
         next: () => {
+          this.assignedMemberIds = this.assignedMemberIds.filter(
+            id => id !== memberId
+          );
+
+          this.selectedMemberIds = this.selectedMemberIds.filter(
+            id => id !== memberId
+          );
+
           this.successMessage = 'Đã thu hồi phân công Member.';
-          this.loadAssignments();
         },
-        error: () => {
-          this.errorMessage = 'Không thể thu hồi Member.';
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể thu hồi phân công Member.'
+          );
         }
       });
+
+    this.subscriptions.add(sub);
   }
 
-  removeProject(id: number): void {
-    if (!this.selectedManagerId) {
-      return;
-    }
+  removeProject(projectId: number): void {
+    if (!this.selectedManagerId) return;
 
-    this.userService
-      .removeProject(this.selectedManagerId, id)
+    const sub = this.userService.removeProject(
+      this.selectedManagerId,
+      projectId
+    )
+      .pipe(
+        timeout(15000),
+        finalize(() => this.cdr.markForCheck())
+      )
       .subscribe({
         next: () => {
+          this.assignedProjectIds = this.assignedProjectIds.filter(
+            id => id !== projectId
+          );
+
+          this.selectedProjectIds = this.selectedProjectIds.filter(
+            id => id !== projectId
+          );
+
           this.successMessage = 'Đã thu hồi phân công Project.';
-          this.loadAssignments();
         },
-        error: () => {
-          this.errorMessage = 'Không thể thu hồi Project.';
+        error: (error: unknown) => {
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể thu hồi phân công Project.'
+          );
         }
       });
+
+    this.subscriptions.add(sub);
   }
 
-  userNameById(id: number): string {
-    const user = this.users.find(item => item.userId === id);
+  userNameById(userId: number): string {
+    const user = this.users.find(item => item.userId === userId);
 
     return user
-      ? user.fullName || user.username
-      : `Member #${id}`;
+      ? `${user.fullName || user.username} (#${userId})`
+      : `Member #${userId}`;
   }
 
-  projectNameById(id: number): string {
-    return (
-      this.projects.find(project => project.projectId === id)
-        ?.projectName ?? `Project #${id}`
+  projectNameById(projectId: number): string {
+    const project = this.projects.find(
+      item => item.projectId === projectId
     );
+
+    return project
+      ? project.projectName
+      : `Project #${projectId}`;
   }
 
-  statusLabel(status: string): string {
-    if (status === 'ACTIVE') {
-      return 'Đang hoạt động';
+  // =========================
+  // XỬ LÝ LỖI API
+  // =========================
+
+  private getErrorMessage(
+    error: unknown,
+    fallback: string
+  ): string {
+    const err = error as any;
+
+    if (err?.name === 'TimeoutError') {
+      return 'Yêu cầu xử lý quá thời gian. Vui lòng thử lại.';
     }
 
-    if (status === 'INACTIVE') {
-      return 'Ngừng hoạt động';
+    if (err?.status === 0) {
+      return 'Không thể kết nối Backend. Kiểm tra server và mạng.';
     }
 
-    return status;
-  }
+    if (err?.status === 401) {
+      return 'Phiên đăng nhập đã hết hạn hoặc chưa đăng nhập.';
+    }
 
-  statusClass(status: string): string {
-    return status === 'ACTIVE'
-      ? 'status-active'
-      : 'status-inactive';
-  }
+    if (err?.status === 403) {
+      return 'Bạn không có quyền thực hiện chức năng này.';
+    }
 
-  trackUser(_: number, user: UserResponse): number {
-    return user.userId;
+    const message =
+      err?.error?.error ??
+      err?.error?.message ??
+      err?.error?.detail ??
+      err?.message;
+
+    return typeof message === 'string' && message.trim()
+      ? message
+      : fallback;
   }
 }

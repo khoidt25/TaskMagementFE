@@ -29,7 +29,7 @@ export class UserAdminService {
   private readonly assignmentUrl ='http://localhost:8081/api/admin/manager-assignments';
 
   getAll(): Observable<UserResponse[]> {
-    return this.http.get<UserResponse[]>(`${this.baseUrl}/all`);
+    return this.http.get<UserResponse[]>(this.baseUrl);
   }
 
   create(request: UserCreateRequest): Observable<UserResponse> {
