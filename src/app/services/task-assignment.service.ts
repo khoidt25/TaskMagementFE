@@ -230,4 +230,49 @@ getProjects(): Observable<TaskProjectOption[]> {
   );
 }
 
+// get Task cua Manager dang nhap 
+filterManagerTask(
+    filters: TaskFilter
+  ): Observable<TaskPageResponse<TaskItem>> {
+    let params = new HttpParams()
+      .set('page', String(filters.page))
+      .set('size', String(filters.size))
+      .set('sort', filters.sort || 'taskId,desc');
+
+    const keyword = filters.keyword?.trim();
+
+    if (keyword) {
+      params = params.set('keyword', keyword);
+    }
+
+    if (filters.status) {
+      params = params.set('status', filters.status);
+    }
+
+    if (filters.projectId != null) {
+      params = params.set('projectId', String(filters.projectId));
+    }
+
+    if (filters.customerId != null) {
+      params = params.set('customerId', String(filters.customerId));
+    }
+
+    if (filters.userId != null) {
+      params = params.set('userId', String(filters.userId));
+    }
+
+    if (filters.deadlineFrom) {
+      params = params.set('deadlineFrom', filters.deadlineFrom);
+    }
+
+    if (filters.deadlineTo) {
+      params = params.set('deadlineTo', filters.deadlineTo);
+    }
+
+    return this.http.get<TaskPageResponse<TaskItem>>(
+      `${this.baseUrl}/tasks/manager/filter`,
+      { params, withCredentials: true }
+    );
+  }
+
 }

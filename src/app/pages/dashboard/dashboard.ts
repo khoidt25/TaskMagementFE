@@ -1,12 +1,17 @@
-
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
+
 import { DashboardService } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+
+interface StatusEntry {
+  label: string;
+  value: number;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -24,7 +29,6 @@ export class DashboardComponent implements OnInit {
   taskStatus: any = {};
   projectSummary: any[] = [];
   overdueTasks: any[] = [];
-  mySummary: any = null;
 
   username = 'admin';
   currentDate = new Date();
@@ -33,105 +37,104 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private authService: AuthService,
     private router: Router,
-     private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadDashboard();
-    this.loadMySummary();
+    this.loadUsername();
   }
 
-  
-loadDashboard(): void {
-  console.log('[Dashboard] Bắt đầu tải dữ liệu');
-
-  this.loading = true;
-  this.errorMessage = '';
-
-  forkJoin({
-    summary: this.dashboardService.getSummary().pipe(
-      catchError(error => {
-        console.error('[API] summary:', error);
-        return of(null);
-      })
-    ),
-    taskStatus: this.dashboardService.getTaskStatus().pipe(
-      catchError(error => {
-        console.error('[API] task-status:', error);
-        return of(null);
-      })
-    ),
-    projectSummary: this.dashboardService.getProjectSummary().pipe(
-      catchError(error => {
-        console.error('[API] project-summary:', error);
-        return of(null);
-      })
-    ),
-    overdueTasks: this.dashboardService.getOverdueTasks().pipe(
-      catchError(error => {
-        console.error('[API] overdue-tasks:', error);
-        return of(null);
-      })
-    )
-  }).pipe(
-    finalize(() => {
-      console.log('[Dashboard] finalize chạy');
-      this.loading = false;
-      this.cdr.detectChanges();
-
-      console.log('[Dashboard] loading sau finalize:', this.loading);
-    })
-  ).subscribe({
-    next: data => {
-      console.log('[Dashboard] Nhận dữ liệu:', data);
-
-      this.summary = data.summary ?? {};
-      this.taskStatus = data.taskStatus ?? {};
-
-      this.projectSummary = Array.isArray(data.projectSummary)
-        ? data.projectSummary
-        : [];
-
-      this.overdueTasks = Array.isArray(data.overdueTasks)
-        ? data.overdueTasks
-        : Array.isArray(data.overdueTasks?.content)
-          ? data.overdueTasks.content
-          : [];
-
-      console.log('[Dashboard] loading =', this.loading);
-    },
-    error: error => {
-      console.error('[Dashboard] Lỗi forkJoin:', error);
-      this.errorMessage = 'Không thể tải dữ liệu Dashboard.';
-    },
-    complete: () => {
-      console.log('[Dashboard] Hoàn tất tải dữ liệu');
-    }
-  });
-}
-
-  loadMySummary(): void {
+  private loadUsername(): void {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const storedUserId = window.localStorage.getItem('userId');
-    const userId = Number(storedUserId);
+    const storedUsername =
+      window.localStorage.getItem('username');
 
-    if (!storedUserId || !Number.isFinite(userId) || userId <= 0) {
-      console.warn('Không tìm thấy userId hợp lệ trong localStorage.');
-      this.mySummary = null;
+    if (storedUsername) {
+      this.username = storedUsername;
+    }
+  }
+
+  loadDashboard(): void {
+    if (this.loading) {
       return;
     }
 
-    this.dashboardService.getMySummary(userId).subscribe({
+    this.loading = true;
+    this.errorMessage = '';
+
+    const errors: string[] = [];
+
+    forkJoin({
+      summary: this.dashboardService.getSummary().pipe(
+        catchError(error => {
+          console.error('[Dashboard] summary:', error);
+          errors.push('Tổng quan công việc');
+          return of(null);
+        })
+      ),
+
+      taskStatus: this.dashboardService.getTaskStatus().pipe(
+        catchError(error => {
+          console.error('[Dashboard] task-status:', error);
+          errors.push('Trạng thái công việc');
+          return of(null);
+        })
+      ),
+
+      projectSummary: this.dashboardService.getProjectSummary().pipe(
+        catchError(error => {
+          console.error('[Dashboard] project-summary:', error);
+          errors.push('Thống kê dự án');
+          return of(null);
+        })
+      ),
+
+      overdueTasks: this.dashboardService.getOverdueTasks().pipe(
+        catchError(error => {
+          console.error('[Dashboard] overdue-tasks:', error);
+          errors.push('Công việc quá hạn');
+          return of(null);
+        })
+      )
+    }).pipe(
+      finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: data => {
-        console.log('My summary response:', data);
-        this.mySummary = data;
+        this.summary = data.summary ?? {};
+        this.taskStatus = data.taskStatus ?? {};
+
+        const projects = data.projectSummary;
+        this.projectSummary = Array.isArray(projects)
+          ? projects
+          : Array.isArray(projects?.content)
+            ? projects.content
+            : [];
+
+        const overdue = data.overdueTasks;
+        this.overdueTasks = Array.isArray(overdue)
+          ? overdue
+          : Array.isArray(overdue?.content)
+            ? overdue.content
+            : [];
+
+        if (errors.length > 0) {
+          this.errorMessage =
+            'Không tải được đầy đủ dữ liệu: ' +
+            errors.join(', ') +
+            '. Vui lòng kiểm tra API và thử làm mới.';
+        }
       },
+
       error: error => {
-        console.error('Lỗi API my-summary:', error);
-        this.mySummary = null;
+        console.error('[Dashboard] Lỗi tải dữ liệu:', error);
+        this.errorMessage = 'Không thể tải dữ liệu Dashboard.';
       }
     });
   }
@@ -153,7 +156,7 @@ loadDashboard(): void {
     return 0;
   }
 
-  get statusEntries(): { label: string; value: number }[] {
+  get statusEntries(): StatusEntry[] {
     const data = this.taskStatus?.statusCounts;
 
     if (!data) {
@@ -168,10 +171,79 @@ loadDashboard(): void {
     }
 
     return Object.entries(data as Record<string, unknown>).map(
-      ([key, value]) => ({
-        label: key,
+      ([label, value]) => ({
+        label,
         value: Number(value) || 0
       })
+    );
+  }
+
+  get statusTotal(): number {
+    const apiTotal = this.getValue(
+      this.taskStatus,
+      'totalTasks',
+      'total'
+    );
+
+    if (apiTotal > 0) {
+      return apiTotal;
+    }
+
+    return this.statusEntries.reduce(
+      (total, item) => total + item.value,
+      0
+    );
+  }
+
+  statusPercentage(item: StatusEntry): number {
+    if (this.statusTotal <= 0) {
+      return 0;
+    }
+
+    return Math.min(
+      100,
+      Math.round((item.value / this.statusTotal) * 100)
+    );
+  }
+
+  get completionRate(): number {
+    const total = this.getValue(
+      this.summary,
+      'totalTasks',
+      'total'
+    );
+
+    const completed = this.getValue(
+      this.summary,
+      'completedTasks',
+      'completed'
+    );
+
+    if (total <= 0) {
+      return 0;
+    }
+
+    return Math.min(
+      100,
+      Math.round((completed / total) * 100)
+    );
+  }
+
+  projectCompletionRate(project: any): number {
+    const total = this.getValue(project, 'totalTasks', 'total');
+    const completed = this.getValue(
+      project,
+      'completedTasks',
+      'completed'
+    );
+
+    if (total <= 0) {
+      return 0;
+    }
+
+    return Math.min(
+      100,
+      Math.round((completed / total) * 100)
     );
   }
 
@@ -216,21 +288,8 @@ loadDashboard(): void {
         : 'Công việc');
   }
 
-  getProgress(task: any): number {
-    const progress = this.getValue(task, 'progress', 'progressPercent');
-    return Math.min(100, Math.max(0, progress));
-  }
-
   logout(): void {
-       this.authService.logout();
-       this.router.navigate(['/login']);
-  }
-
-  private redirectToLogin(): void {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('userId');
-    }
-
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 }

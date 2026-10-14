@@ -9,34 +9,42 @@
   <nav class="sidebar-nav"
        *ngIf="!authService.hasRole('ROLE_MEMBER')">
 
-    <a routerLink="/dashboard"
+    <a *ngIf="!authService.hasRole('ROLE_MANAGER')" routerLink="/dashboard"
        routerLinkActive="active"
        [routerLinkActiveOptions]="{ exact: true }">
       <span class="menu-icon">▦</span>
       <span>Tổng quan</span>
     </a>
 
-    <a routerLink="/task-management" routerLinkActive="active">
+    <a *ngIf="!authService.hasRole('ROLE_MANAGER')" routerLink="/task-management" routerLinkActive="active">
       <span class="menu-icon">☷</span>
       <span>Quản lý Task</span>
     </a>
 
-    <a routerLink="/tasks" routerLinkActive="active">
-      <span class="menu-icon">⇄</span>
-      <span>Phân công công việc</span>
+    <a *ngIf="!authService.hasRole('ROLE_ADMIN')" routerLink="/task-manager" routerLinkActive="active">
+      <span class="menu-icon">☷</span>
+      <span>Tạo Task</span>
     </a>
 
-    <a routerLink="/projects" routerLinkActive="active">
+   <a
+  *ngIf="!authService.hasRole('ROLE_ADMIN')"
+  routerLink="/tasks"
+  routerLinkActive="active">
+  <span class="menu-icon">⇄</span>
+  <span>Phân công công việc</span>
+</a>
+
+    <a *ngIf="!authService.hasRole('ROLE_MANAGER')" routerLink="/projects" routerLinkActive="active">
       <span class="menu-icon">▤</span>
       <span>Project</span>
     </a>
 
-    <a routerLink="/customers" routerLinkActive="active">
+    <a *ngIf="!authService.hasRole('ROLE_MANAGER')" routerLink="/customers" routerLinkActive="active">
       <span class="menu-icon">◎</span>
       <span>Khách hàng</span>
     </a>
 
-    <a routerLink="/users" routerLinkActive="active">
+    <a *ngIf="!authService.hasRole('ROLE_MANAGER')" routerLink="/users" routerLinkActive="active">
       <span class="menu-icon">♙</span>
       <span>Thành viên</span>
     </a>

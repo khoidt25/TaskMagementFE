@@ -7,8 +7,10 @@ import { authGuard } from './guards/auth-guard';
 import { ProjectsComponent } from './pages/projects.component/projects.component';
 import { CustomersComponent } from './pages/customers.component/customers.component';
 import { UsersComponent } from './pages/users.component/users.component';
-import { DashboardManagerCompoent } from './pages/dashboard-manager.compoent/dashboard-manager.compoent';
 import { DashboardMemberComponent } from './pages/dashboard-member.component/dashboard-member.component';
+import { DashboardManagerCompoent } from './pages/dashboard-manager.component/dashboard-manager.compoent';
+import { TaskManagerComponent } from './pages/task-manager.component/task-manager.component';
+import { DashboardManager } from './pages/dashboard-manager/dashboard-manager';
 
 export const routes: Routes = [
   {
@@ -55,8 +57,13 @@ export const routes: Routes = [
   {
     path: 'member',
     canActivate: [authGuard],
-    component: DashboardMemberComponent
-  },  
+    component: DashboardManager
+  },
+  {
+    path: 'task-manager',
+    canActivate: [authGuard],
+    component: TaskManagerComponent
+  },
   {
     path: '',
     redirectTo: 'login',
