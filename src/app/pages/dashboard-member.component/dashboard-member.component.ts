@@ -26,11 +26,8 @@ import {
 
 import { AuthService } from '../../services/auth.service';
 
-import {
-  TaskWorkLogService,
-  TaskWorkLog,
-  TaskWorkLogRequest
-} from '../../services/task-work-log.service';
+import { TaskWorkLogService,TaskWorkLog,TaskWorkLogRequest } from '../../services/task-work-log.service';
+import { SidebarComponent } from '../sidebar/sidebar';
 
 @Component({
   selector: 'app-member-dashboard',
@@ -38,7 +35,8 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule, 
+    SidebarComponent
   ],
   templateUrl: './dashboard-member.component.html',
   styleUrl: './dashboard-member.component.css'

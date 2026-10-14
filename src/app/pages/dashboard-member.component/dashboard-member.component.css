@@ -1,1417 +1,721 @@
-
-
 :host {
-
   display: block;
-
   min-width: 0;
-
+  min-height: 100vh;
   color: #172033;
-
   font-family: Inter, "Segoe UI", Arial, sans-serif;
-
 }
-
-
 
 * {
-
   box-sizing: border-box;
-
 }
-
-
 
 .member-page {
-
+  display: flex;
+  align-items: stretch;
   width: 100%;
-
-  max-width: 1800px;
-
-  margin: 0 auto;
-
-  padding: 28px 32px 40px;
-
+  min-width: 0;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   background: #f6f8fc;
-
-  min-height: 100%;
-
 }
 
+/* Sidebar component */
+.member-page > app-sidebar {
+  display: block;
+  flex: 0 0 250px;
+  width: 250px;
+  min-width: 250px;
+  min-height: 100vh;
+}
 
+/* Main content */
+.member-content {
+  flex: 1 1 auto;
+  width: calc(100% - 250px);
+  min-width: 0;
+  min-height: 100vh;
+  padding: 28px 32px 40px;
+  overflow-x: auto;
+}
 
 .page-header,
-
 .panel-heading,
-
 .stat-top,
-
 .worklog-toolbar,
-
 .panel-footer {
-
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
   gap: 16px;
-
 }
-
-
 
 .page-header {
-
   margin-bottom: 24px;
-
 }
-
-
 
 .breadcrumb {
-
   margin-bottom: 8px;
-
   color: #8290a5;
-
   font-size: 12px;
-
   font-weight: 500;
-
 }
-
-
 
 .page-header h1 {
-
   margin: 0;
-
   color: #172033;
-
   font-size: 28px;
-
   font-weight: 750;
-
   letter-spacing: -0.7px;
-
 }
-
-
 
 .page-header p,
-
 .panel-heading p {
-
   margin: 8px 0 0;
-
   color: #778398;
-
   font-size: 13px;
-
   line-height: 1.6;
-
 }
 
-
+/* ========================================
+   BUTTONS
+======================================== */
 
 .btn {
-
   display: inline-flex;
-
   align-items: center;
-
   justify-content: center;
-
   gap: 8px;
-
   min-height: 38px;
-
   padding: 0 15px;
-
   border: 1px solid transparent;
-
   border-radius: 8px;
-
   font: inherit;
-
   font-size: 12px;
-
   font-weight: 650;
-
   white-space: nowrap;
-
   cursor: pointer;
-
-  transition: background 0.18s, border-color 0.18s, opacity 0.18s;
-
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    opacity 0.18s;
 }
-
-
 
 .btn:disabled {
-
   cursor: not-allowed;
-
   opacity: 0.55;
-
 }
-
-
 
 .btn-primary {
-
   color: #fff;
-
   background: #3268e8;
-
   border-color: #3268e8;
-
 }
-
-
 
 .btn-primary:hover:not(:disabled) {
-
   background: #2455ca;
-
 }
-
-
 
 .btn-outline {
-
   color: #3268e8;
-
   background: #fff;
-
   border-color: #d6e1fa;
-
 }
-
-
 
 .btn-outline:hover:not(:disabled) {
-
   background: #f0f5ff;
-
 }
-
-
 
 .btn-small {
-
   min-height: 32px;
-
   padding: 0 11px;
-
   font-size: 11px;
-
 }
-
-
 
 .refresh-icon {
-
   font-size: 19px;
-
   line-height: 1;
-
 }
 
-
+/* ========================================
+   ALERTS
+======================================== */
 
 .alert {
-
   margin-bottom: 16px;
-
   padding: 12px 15px;
-
   border: 1px solid;
-
   border-radius: 9px;
-
   font-size: 13px;
-
 }
-
-
 
 .alert-error {
-
   color: #b42318;
-
   background: #fff3f1;
-
   border-color: #ffd4ce;
-
 }
-
-
 
 .alert-success {
-
   color: #137547;
-
   background: #effbf4;
-
   border-color: #c6efd6;
-
 }
 
-
-
-/* KPI cards */
+/* ========================================
+   STATISTICS CARDS
+======================================== */
 
 .stats-grid {
-
   display: grid;
-
   grid-template-columns: repeat(4, minmax(0, 1fr));
-
   gap: 16px;
-
   margin-bottom: 22px;
-
 }
-
-
 
 .stat-card {
-
   position: relative;
-
+  min-width: 0;
   min-height: 140px;
-
   padding: 20px;
-
   overflow: hidden;
-
   background: #fff;
-
   border: 1px solid #e8edf5;
-
   border-radius: 12px;
-
   box-shadow: 0 2px 7px rgb(22 34 60 / 3%);
-
 }
-
-
 
 .stat-top {
-
   justify-content: flex-start;
-
 }
-
-
 
 .stat-label {
-
   color: #778398;
-
   font-size: 12px;
-
   font-weight: 550;
-
 }
-
-
 
 .stat-icon {
-
   display: inline-flex;
-
   align-items: center;
-
   justify-content: center;
-
+  flex-shrink: 0;
   width: 34px;
-
   height: 34px;
-
   margin-left: auto;
-
   border-radius: 9px;
-
   font-size: 18px;
-
   font-weight: 700;
-
 }
-
-
 
 .icon-blue {
-
   color: #3268e8;
-
   background: #edf3ff;
-
 }
-
-
 
 .icon-orange {
-
   color: #d97706;
-
   background: #fff5e8;
-
 }
-
-
 
 .icon-green {
-
   color: #15945b;
-
   background: #e9f9f0;
-
 }
-
-
 
 .icon-red {
-
   color: #dc4545;
-
   background: #fff0ef;
-
 }
-
-
 
 .stat-number {
-
   display: block;
-
   margin-top: 13px;
-
   color: #172033;
-
   font-size: 30px;
-
   font-weight: 750;
-
   line-height: 1;
-
 }
-
-
 
 .stat-description {
-
   display: block;
-
   margin-top: 9px;
-
   color: #98a2b3;
-
   font-size: 11px;
-
 }
 
-
-
-/* Panels */
+/* ========================================
+   PANELS
+======================================== */
 
 .panel {
-
+  width: 100%;
   min-width: 0;
-
   margin-bottom: 22px;
-
   overflow: hidden;
-
   background: #fff;
-
   border: 1px solid #e7ecf4;
-
   border-radius: 12px;
-
   box-shadow: 0 2px 7px rgb(22 34 60 / 3%);
-
 }
-
-
 
 .panel-heading {
-
   padding: 22px 24px;
-
   border-bottom: 1px solid #edf0f5;
-
 }
 
-
+.panel-heading > div {
+  min-width: 0;
+}
 
 .panel-heading h2 {
-
   margin: 5px 0 0;
-
   color: #1b263b;
-
   font-size: 17px;
-
   font-weight: 720;
-
   letter-spacing: -0.2px;
-
 }
-
-
 
 .section-eyebrow {
-
   color: #4775e7;
-
   font-size: 10px;
-
   font-weight: 750;
-
   letter-spacing: 1.1px;
-
 }
-
-
 
 .panel-icon {
-
   display: inline-flex;
-
   align-items: center;
-
   justify-content: center;
-
-  width: 40px;
-
-  height: 40px;
-
   flex-shrink: 0;
-
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
-
   color: #3268e8;
-
   background: #eff4ff;
-
   font-size: 21px;
-
 }
-
-
 
 .task-count {
-
   padding: 7px 10px;
-
   border-radius: 7px;
-
   color: #416bd0;
-
   background: #eff4ff;
-
   font-size: 11px;
-
   font-weight: 700;
-
   white-space: nowrap;
-
 }
 
-
-
-/* Daily work log */
+/* ========================================
+   DAILY WORK LOG
+======================================== */
 
 .worklog-toolbar {
-
   align-items: flex-end;
-
+  flex-wrap: wrap;
   padding: 18px 24px;
-
   background: #fbfcff;
-
   border-bottom: 1px solid #edf0f5;
-
 }
-
-
 
 .date-field {
-
   display: flex;
-
   flex-direction: column;
-
   gap: 7px;
-
   min-width: 190px;
-
 }
-
-
 
 .date-field label {
-
   color: #66738a;
-
   font-size: 11px;
-
   font-weight: 650;
-
 }
-
-
 
 .date-field input {
-
   min-height: 38px;
-
   padding: 0 11px;
-
   border: 1px solid #dce3ed;
-
   border-radius: 7px;
-
   background: #fff;
-
   color: #25324a;
-
   font: inherit;
-
   font-size: 12px;
-
 }
-
-
 
 .worklog-summary {
-
   display: flex;
-
   align-items: stretch;
-
   gap: 12px;
-
 }
-
-
 
 .hours-summary {
-
   display: flex;
-
   flex-direction: column;
-
   justify-content: center;
-
   min-width: 130px;
-
   padding: 10px 14px;
-
   border: 1px solid #e4eaf5;
-
   border-radius: 8px;
-
   background: #fff;
-
 }
-
-
 
 .hours-summary span {
-
   color: #7b879b;
-
   font-size: 11px;
-
 }
-
-
 
 .hours-summary strong {
-
   margin-top: 5px;
-
   color: #243654;
-
   font-size: 17px;
-
 }
-
-
 
 .hours-summary:last-child strong {
-
   color: #14865b;
-
 }
 
-
-
-/* Search and filters */
+/* ========================================
+   SEARCH AND FILTERS
+======================================== */
 
 .filters {
-
   display: flex;
-
   align-items: center;
-
   gap: 12px;
-
   padding: 18px 24px;
-
 }
-
-
 
 .search-field {
-
   display: flex;
-
   align-items: center;
-
-  flex: 1;
-
+  flex: 1 1 auto;
   min-width: 180px;
-
   height: 40px;
-
   padding: 0 12px;
-
   border: 1px solid #dfe5ee;
-
   border-radius: 8px;
-
   background: #fff;
-
 }
-
-
 
 .search-icon {
-
+  flex-shrink: 0;
   margin-right: 8px;
-
   color: #8d99ad;
-
   font-size: 22px;
-
 }
-
-
 
 .search-field input {
-
   width: 100%;
-
   min-width: 0;
-
   border: 0;
-
   outline: 0;
-
   background: transparent;
-
   color: #25324a;
-
   font: inherit;
-
   font-size: 12px;
-
 }
-
-
 
 .filter-select {
-
+  flex: 0 0 205px;
   width: 205px;
-
   height: 40px;
-
   padding: 0 12px;
-
   border: 1px solid #dfe5ee;
-
   border-radius: 8px;
-
   background: #fff;
-
   color: #39465c;
-
   font: inherit;
-
   font-size: 12px;
-
 }
 
-
-
-/* Tables */
+/* ========================================
+   TABLES
+======================================== */
 
 .table-wrapper {
-
   width: 100%;
-
+  min-width: 0;
   overflow-x: auto;
-
+  overscroll-behavior-x: contain;
 }
-
-
 
 table {
-
   width: 100%;
-
   border-collapse: collapse;
-
   text-align: left;
-
 }
-
-
 
 th {
-
   padding: 13px 15px;
-
   background: #f8faff;
-
   border-top: 1px solid #edf0f5;
-
   border-bottom: 1px solid #e9edf4;
-
   color: #7a869a;
-
   font-size: 10px;
-
   font-weight: 750;
-
   white-space: nowrap;
-
 }
-
-
 
 td {
-
   padding: 15px;
-
   border-bottom: 1px solid #eef1f6;
-
   color: #4b5870;
-
   font-size: 11px;
-
   vertical-align: middle;
-
 }
-
-
 
 tbody tr:last-child td {
-
   border-bottom: 0;
-
 }
-
-
 
 tbody tr:hover {
-
   background: #fbfcff;
-
 }
 
-
+/* Task name and code */
 
 .task-info {
-
   min-width: 180px;
-
 }
-
-
 
 .task-info .task-code {
-
   display: block;
-
   margin-bottom: 5px;
-
   color: #3970e8;
-
   font-size: 10px;
-
   font-weight: 750;
-
 }
-
-
 
 .task-info strong {
-
   display: block;
-
   max-width: 230px;
-
   color: #263249;
-
   font-size: 12px;
-
   font-weight: 650;
-
   line-height: 1.5;
-
+  overflow-wrap: anywhere;
 }
-
-
 
 .task-info small {
-
   display: block;
-
   margin-top: 5px;
-
   color: #9aa4b5;
-
   font-size: 10px;
-
 }
 
-
+/* Role */
 
 .role-label {
-
   display: inline-block;
-
   padding: 5px 8px;
-
   border-radius: 6px;
-
   background: #f0f3f8;
-
   color: #56647a;
-
   font-size: 10px;
-
   white-space: nowrap;
-
 }
 
-
+/* Assigned work */
 
 .assigned-work {
-
   min-width: 150px;
-
   max-width: 230px;
-
   line-height: 1.6;
-
+  overflow-wrap: anywhere;
 }
 
-
+/* Deadline */
 
 .deadline {
-
-  white-space: nowrap;
-
   color: #536078;
-
+  white-space: nowrap;
 }
-
-
 
 .deadline.overdue {
-
   color: #d92d20;
-
   font-weight: 750;
-
 }
 
-
+/* Status */
 
 .status-select {
-
-  max-width: 155px;
-
   min-width: 125px;
-
+  max-width: 155px;
   min-height: 32px;
-
   padding: 0 8px;
-
   border: 1px solid #dfe5ee;
-
   border-radius: 7px;
-
   outline: none;
-
   background: #fff;
-
   color: #45536a;
-
   font: inherit;
-
   font-size: 10px;
-
 }
 
-
+.status-select:focus {
+  border-color: #9db9ff;
+}
 
 .status-select:disabled,
-
 input:disabled {
-
   background: #f1f3f7;
-
   color: #929bad;
-
   cursor: not-allowed;
-
 }
 
-
+/* Progress */
 
 .progress-cell {
-
   min-width: 125px;
-
 }
-
-
 
 .progress-value {
-
   display: flex;
-
   align-items: center;
-
   gap: 6px;
-
 }
-
-
 
 .progress-value input {
-
   width: 58px;
-
   height: 30px;
-
   padding: 0 6px;
-
   border: 1px solid #dfe5ee;
-
   border-radius: 6px;
-
   outline-color: #9db9ff;
-
   font: inherit;
-
   font-size: 11px;
-
 }
-
-
 
 .progress-value span {
-
   color: #8b96a8;
-
   font-size: 10px;
-
 }
-
-
 
 .progress-track {
-
   width: 100%;
-
   height: 5px;
-
   margin-top: 9px;
-
   overflow: hidden;
-
   border-radius: 10px;
-
   background: #e9edf4;
-
 }
-
-
 
 .progress-fill {
-
   height: 100%;
-
   border-radius: inherit;
-
   background: #4d7ff0;
-
   transition: width 0.2s ease;
-
 }
-
-
 
 .progress-fill.progress-complete {
-
   background: #21a366;
-
 }
 
-
+/* Notes */
 
 .note-input {
-
   width: 145px;
-
   min-height: 32px;
-
   padding: 0 9px;
-
   border: 1px solid #e0e6ef;
-
   border-radius: 6px;
-
   outline-color: #9db9ff;
-
   color: #46546a;
-
   background: #fff;
-
   font: inherit;
-
   font-size: 10px;
-
 }
 
+.note-input:focus,
+.hour-input input:focus,
+.date-field input:focus {
+  border-color: #9db9ff;
+}
 
+/* Planned and actual hours */
 
 .hour-input {
-
   display: flex;
-
   align-items: center;
-
   gap: 6px;
-
   min-width: 95px;
-
 }
-
-
 
 .hour-input input {
-
   width: 65px;
-
   min-height: 34px;
-
   padding: 0 7px;
-
   border: 1px solid #dfe5ee;
-
   border-radius: 6px;
-
   outline-color: #9db9ff;
-
   color: #33415b;
-
   font: inherit;
-
   font-size: 12px;
-
 }
-
-
 
 .hour-input span {
-
   color: #8b96a8;
-
   font-size: 10px;
-
 }
 
-
+/* ========================================
+   LOADING AND EMPTY STATES
+======================================== */
 
 .loading-state,
-
 .empty-state {
-
   padding: 42px 20px;
-
   text-align: center;
-
 }
-
-
 
 .loading-state {
-
   color: #718096;
-
   font-size: 12px;
-
 }
-
-
 
 .empty-icon {
-
   display: inline-flex;
-
   align-items: center;
-
   justify-content: center;
-
   width: 48px;
-
   height: 48px;
-
   margin-bottom: 12px;
-
   border-radius: 14px;
-
   background: #f0f4fb;
-
   color: #7390c7;
-
   font-size: 24px;
-
 }
-
-
 
 .empty-state h3 {
-
   margin: 0;
-
   color: #344158;
-
   font-size: 14px;
-
 }
-
-
 
 .empty-state p {
-
   margin: 8px 0 0;
-
   color: #8994a6;
-
   font-size: 11px;
-
+  line-height: 1.6;
 }
 
-
+/* ========================================
+   PANEL FOOTER
+======================================== */
 
 .panel-footer {
-
   justify-content: flex-start;
-
   padding: 13px 24px;
-
   border-top: 1px solid #edf0f5;
-
   color: #929caf;
-
   font-size: 10px;
-
+  line-height: 1.6;
 }
 
+/* ========================================
+   PAGINATION
+======================================== */
 
-
-/* Responsive */
-
-@media (max-width: 1100px) {
-
-  .member-page {
-
-    padding: 22px 20px 32px;
-
-  }
-
-
-
-  .stats-grid {
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  }
-
-
-
-  .worklog-toolbar {
-
-    align-items: stretch;
-
-    flex-direction: column;
-
-  }
-
-
-
-  .worklog-summary {
-
-    width: 100%;
-
-  }
-
-
-
-  .hours-summary {
-
-    flex: 1;
-
-  }
-
-}
-
-
-
-@media (max-width: 640px) {
-
-  .member-page {
-
-    padding: 16px 12px 24px;
-
-  }
-
-
-
-  .page-header {
-
-    align-items: flex-start;
-
-    flex-direction: column;
-
-  }
-
-
-
-  .page-header h1 {
-
-    font-size: 23px;
-
-  }
-
-
-
-  .stats-grid {
-
-    gap: 10px;
-
-  }
-
-
-
-  .stat-card {
-
-    min-height: 125px;
-
-    padding: 14px;
-
-  }
-
-
-
-  .stat-number {
-
-    font-size: 25px;
-
-  }
-
-
-
-  .panel-heading {
-
-    align-items: flex-start;
-
-    padding: 17px;
-
-  }
-
-
-
-  .filters {
-
-    align-items: stretch;
-
-    flex-direction: column;
-
-    padding: 14px 17px;
-
-  }
-
-
-
-  .filter-select {
-
-    width: 100%;
-
-  }
-
-
-
-  .worklog-toolbar {
-
-    padding: 15px 17px;
-
-  }
-
-
-
-  .worklog-summary {
-
-    gap: 8px;
-
-  }
-
-
-
-  .hours-summary {
-
-    min-width: 0;
-
-    padding: 10px;
-
-  }
-
-
-
-  .hours-summary strong {
-
-    font-size: 15px;
-
-  }
-
-
-
-  .panel-footer {
-
-    padding: 12px 17px;
-
-    line-height: 1.5;
-
-  }
-
-}
-
-
-/* ==============================
-   PAGINATION - Work Log / Task Table
-============================== */
 .pagination,
 .pagination-bar,
 .pagination-container {
@@ -1481,7 +785,10 @@ input:disabled {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s;
 }
 
 .pagination-controls button:hover:not(:disabled),
@@ -1511,7 +818,191 @@ input:disabled {
   white-space: nowrap;
 }
 
+/* ========================================
+   RESPONSIVE - TABLET
+======================================== */
+
+@media (max-width: 1200px) {
+  .member-page > app-sidebar {
+    flex-basis: 220px;
+    width: 220px;
+    min-width: 220px;
+  }
+
+  .member-content {
+    width: calc(100% - 220px);
+    padding: 24px 20px 32px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .worklog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .worklog-summary {
+    width: 100%;
+  }
+
+  .hours-summary {
+    flex: 1 1 0;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - SMALL TABLET
+======================================== */
+
+@media (max-width: 900px) {
+  .member-page > app-sidebar {
+    flex-basis: 200px;
+    width: 200px;
+    min-width: 200px;
+  }
+
+  .member-content {
+    width: calc(100% - 200px);
+    padding: 20px 16px 28px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .panel-heading {
+    padding: 18px;
+  }
+
+  .filters {
+    padding: 15px 18px;
+  }
+
+  .pagination,
+  .pagination-bar,
+  .pagination-container {
+    padding: 14px 18px;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
+======================================== */
+
 @media (max-width: 640px) {
+  .member-page {
+    display: block;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .member-page > app-sidebar {
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
+  }
+
+  .member-content {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 12px 24px;
+    overflow-x: hidden;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .page-header h1 {
+    font-size: 23px;
+  }
+
+  .page-header p {
+    max-width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat-card {
+    min-height: 125px;
+    padding: 14px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .stat-number {
+    font-size: 25px;
+  }
+
+  .panel-heading {
+    align-items: flex-start;
+    padding: 17px;
+  }
+
+  .panel-heading h2 {
+    font-size: 15px;
+  }
+
+  .task-count {
+    font-size: 10px;
+  }
+
+  .filters {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 14px 17px;
+  }
+
+  .search-field {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filter-select {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .worklog-toolbar {
+    padding: 15px 17px;
+  }
+
+  .date-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .date-field input {
+    width: 100%;
+  }
+
+  .worklog-summary {
+    gap: 8px;
+  }
+
+  .hours-summary {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .hours-summary strong {
+    font-size: 15px;
+  }
+
+  .panel-footer {
+    padding: 12px 17px;
+  }
+
   .pagination,
   .pagination-bar,
   .pagination-container {
@@ -1523,5 +1014,40 @@ input:disabled {
   .pagination-controls {
     justify-content: flex-start;
     width: 100%;
+  }
+}
+
+/* ========================================
+   VERY SMALL MOBILE
+======================================== */
+
+@media (max-width: 380px) {
+  .member-content {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .stats-grid {
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 11px;
+  }
+
+  .stat-number {
+    font-size: 22px;
+  }
+
+  .worklog-summary {
+    flex-direction: column;
+  }
+
+  .hours-summary {
+    width: 100%;
+  }
+
+  .pagination-controls {
+    gap: 6px;
   }
 }
