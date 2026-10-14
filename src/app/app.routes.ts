@@ -10,7 +10,6 @@ import { UsersComponent } from './pages/users.component/users.component';
 import { DashboardMemberComponent } from './pages/dashboard-member.component/dashboard-member.component';
 import { DashboardManagerCompoent } from './pages/dashboard-manager.component/dashboard-manager.compoent';
 import { TaskManagerComponent } from './pages/task-manager.component/task-manager.component';
-// import { DashboardManager } from './pages/dashboard-manager/dashboard-manager';
 
 export const routes: Routes = [
   {
