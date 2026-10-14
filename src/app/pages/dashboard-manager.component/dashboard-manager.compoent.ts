@@ -1,10 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  inject
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 
-import { DashboardService } from '../../services/dashboard.service';
+import {
+  DashboardManagerService
+} from '../../services/dashboard-manager.service';
+
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 
@@ -16,18 +24,25 @@ import { SidebarComponent } from '../sidebar/sidebar';
   styleUrl: './dashboard-manager.component.css'
 })
 export class DashboardManagerCompoent implements OnInit {
-  private readonly dashboardService = inject(DashboardService);
+
+  private readonly dashboardManagerService =
+    inject(DashboardManagerService);
+
   readonly authService = inject(AuthService);
+
   private readonly cdr = inject(ChangeDetectorRef);
 
   loading = false;
   errorMessage = '';
+
   username = 'Người dùng';
   currentDate = new Date();
 
   summary: any = {};
   taskStatus: any = {};
   projectSummary: any[] = [];
+
+  // Các thuộc tính giữ lại để tương thích HTML hiện tại.
   overdueTasks: any[] = [];
   userSummary: any[] = [];
   customerSummary: any[] = [];
@@ -37,83 +52,66 @@ export class DashboardManagerCompoent implements OnInit {
     this.loadDashboard();
   }
 
+  /**
+   * Lấy tên người dùng đã lưu sau khi đăng nhập.
+   * Kiểm tra window để tránh lỗi khi chạy Angular SSR.
+   */
   private loadUsername(): void {
     if (typeof window === 'undefined') {
       return;
     }
 
     const savedUsername =
-      localStorage.getItem('username') ||
-      localStorage.getItem('fullName') ||
-      localStorage.getItem('name');
+      window.localStorage.getItem('username') ||
+      window.localStorage.getItem('fullName') ||
+      window.localStorage.getItem('name');
 
     if (savedUsername) {
       this.username = savedUsername;
     }
   }
 
+  /**
+   * Tải dữ liệu Dashboard Manager.
+   * Backend xác định Manager từ JWT / Authentication.
+   */
   loadDashboard(): void {
     this.loading = true;
     this.errorMessage = '';
     this.currentDate = new Date();
 
-    const service = this.dashboardService as any;
-
-    const summary$ = this.dashboardService.getSummary().pipe(
-      catchError((error) => {
-        console.error('Không tải được thống kê tổng quan:', error);
-        return of(null);
-      })
-    );
-
-    const taskStatus$ = this.dashboardService.getTaskStatus().pipe(
-      catchError((error) => {
-        console.error('Không tải được trạng thái task:', error);
-        return of(null);
-      })
-    );
-
-    const projectSummary$ = this.dashboardService.getProjectSummary().pipe(
-      catchError((error) => {
-        console.error('Không tải được thống kê project:', error);
-        return of([]);
-      })
-    );
-
-    const overdueTasks$ = typeof service.getOverdueTasks === 'function'
-      ? service.getOverdueTasks().pipe(
-          catchError((error: unknown) => {
-            console.error('Không tải được task quá hạn:', error);
-            return of([]);
-          })
-        )
-      : of([]);
-
-    const userSummary$ = typeof service.getUserSummary === 'function'
-      ? service.getUserSummary().pipe(
-          catchError((error: unknown) => {
-            console.error('Không tải được thống kê theo user:', error);
-            return of([]);
-          })
-        )
-      : of([]);
-
-    const customerSummary$ = typeof service.getCustomerSummary === 'function'
-      ? service.getCustomerSummary().pipe(
-          catchError((error: unknown) => {
-            console.error('Không tải được thống kê theo khách hàng:', error);
-            return of([]);
-          })
-        )
-      : of([]);
-
     forkJoin({
-      summary: summary$,
-      taskStatus: taskStatus$,
-      projectSummary: projectSummary$,
-      overdueTasks: overdueTasks$,
-      userSummary: userSummary$,
-      customerSummary: customerSummary$
+      summary: this.dashboardManagerService.getSummary().pipe(
+        catchError((error) => {
+          console.error('Không tải được thống kê tổng quan:', error);
+          return of(null);
+        })
+      ),
+
+      taskStatus: this.dashboardManagerService.getTaskStatus().pipe(
+        catchError((error) => {
+          console.error('Không tải được trạng thái task:', error);
+          return of(null);
+        })
+      ),
+
+      statistics: this.dashboardManagerService
+        .getTaskStatusStatistics()
+        .pipe(
+          catchError((error) => {
+            console.error('Không tải được thống kê trạng thái:', error);
+            return of(null);
+          })
+        ),
+
+      projectSummary: this.dashboardManagerService
+        .getProjectSummary()
+        .pipe(
+          catchError((error) => {
+            console.error('Không tải được thống kê project:', error);
+            return of(null);
+          })
+        )
     })
       .pipe(
         finalize(() => {
@@ -124,39 +122,73 @@ export class DashboardManagerCompoent implements OnInit {
       .subscribe({
         next: (data) => {
           this.summary = data.summary ?? {};
+
           this.taskStatus = data.taskStatus ?? {};
 
-          this.projectSummary = this.toArray(data.projectSummary);
-          this.overdueTasks = this.toArray(data.overdueTasks);
-          this.userSummary = this.toArray(data.userSummary);
-          this.customerSummary = this.toArray(data.customerSummary);
+          /*
+           * API /statistics/status trả về:
+           * {
+           *   "NOT_STARTED": 2,
+           *   "IN_PROGRESS": 4,
+           *   "PENDING": 1,
+           *   "COMPLETED": 3,
+           *   "CANCELLED": 0
+           * }
+           *
+           * API /task-status trả về:
+           * {
+           *   "totalTasks": 10,
+           *   "statusCounts": { ... }
+           * }
+           */
+          const statistics = data.statistics;
 
-          // Nếu chưa có API thống kê khách hàng, tổng hợp từ dữ liệu project.
-          if (this.customerSummary.length === 0) {
-            this.customerSummary = this.buildCustomerSummary(
-              this.projectSummary
-            );
-          }
-
-          // Nếu API trả danh sách task quá hạn, cập nhật số lượng thực tế.
-          if (this.overdueTasks.length > 0) {
-            this.summary = {
-              ...this.summary,
-              overdueTasks: this.overdueTasks.length,
-              overdue: this.overdueTasks.length
+          if (statistics && typeof statistics === 'object') {
+            this.taskStatus = {
+              ...this.taskStatus,
+              statusCounts: statistics
             };
           }
 
+          this.projectSummary = this.toArray(
+            data.projectSummary
+          );
+
+          /*
+           * Các API userSummary, customerSummary và overdueTasks
+           * không thuộc DashboardManagerService hiện tại.
+           */
+          this.overdueTasks = [];
+          this.userSummary = [];
+          this.customerSummary = [];
+
           this.cdr.markForCheck();
+
+          if (
+            data.summary === null &&
+            data.taskStatus === null &&
+            data.statistics === null &&
+            data.projectSummary === null
+          ) {
+            this.errorMessage =
+              'Không thể tải dữ liệu Dashboard. ' +
+              'Vui lòng kiểm tra API, JWT và quyền MANAGER.';
+          }
         },
+
         error: (error) => {
-          console.error('Lỗi tải dashboard:', error);
+          console.error('Lỗi tải Dashboard Manager:', error);
+
           this.errorMessage =
-            'Không thể tải dữ liệu dashboard. Vui lòng kiểm tra kết nối API và thử lại.';
+            'Không thể tải dữ liệu Dashboard. ' +
+            'Vui lòng kiểm tra kết nối backend và đăng nhập.';
         }
       });
   }
 
+  /**
+   * Chuyển dữ liệu thành mảng.
+   */
   private toArray(data: any): any[] {
     if (Array.isArray(data)) {
       return data;
@@ -177,36 +209,9 @@ export class DashboardManagerCompoent implements OnInit {
     return [];
   }
 
-  private buildCustomerSummary(projects: any[]): any[] {
-    const result = new Map<string, any>();
-
-    for (const project of projects) {
-      const customerName =
-        project?.customerName ??
-        project?.customer?.customerName ??
-        project?.customer?.name;
-
-      if (!customerName) {
-        continue;
-      }
-
-      const current = result.get(customerName) ?? {
-        customerName,
-        totalTasks: 0,
-        projectCount: 0
-      };
-
-      current.projectCount += 1;
-      current.totalTasks += Number(
-        this.getValue(project, 'totalTasks', 'taskCount', 'total', 'totalTask') ?? 0
-      );
-
-      result.set(customerName, current);
-    }
-
-    return Array.from(result.values());
-  }
-
+  /**
+   * Lấy giá trị theo nhiều tên thuộc tính.
+   */
   getValue(data: any, ...keys: string[]): any {
     if (!data) {
       return 0;
@@ -223,52 +228,63 @@ export class DashboardManagerCompoent implements OnInit {
 
   get totalTasks(): number {
     return Number(
-      this.getValue(this.summary, 'totalTasks', 'total', 'taskCount')
-    ) || 0;
+      this.getValue(
+        this.summary,
+        'totalTasks',
+        'total',
+        'taskCount'
+      )
+    ) || Number(this.taskStatus?.totalTasks) || 0;
   }
 
   get inProgressTasks(): number {
-    const fromSummary = this.getValue(
-      this.summary,
-      'inProgressTasks',
-      'inProgress',
-      'processingTasks'
+    const value = Number(
+      this.getValue(
+        this.summary,
+        'inProgressTasks',
+        'inProgress',
+        'processingTasks'
+      )
     );
 
-    return Number(fromSummary) || this.statusCount('IN_PROGRESS');
+    return value || this.statusCount('IN_PROGRESS');
   }
 
   get notStartedTasks(): number {
-    const fromSummary = this.getValue(
-      this.summary,
-      'notStartedTasks',
-      'notStarted',
-      'pendingStartTasks'
+    const value = Number(
+      this.getValue(
+        this.summary,
+        'notStartedTasks',
+        'notStarted',
+        'pendingStartTasks'
+      )
     );
 
-    return Number(fromSummary) || this.statusCount('NOT_STARTED');
+    return value || this.statusCount('NOT_STARTED');
   }
 
   get completedTasks(): number {
-    const fromSummary = this.getValue(
-      this.summary,
-      'completedTasks',
-      'completed',
-      'doneTasks'
+    const value = Number(
+      this.getValue(
+        this.summary,
+        'completedTasks',
+        'completed',
+        'doneTasks'
+      )
     );
 
-    return Number(fromSummary) || this.statusCount('COMPLETED');
+    return value || this.statusCount('COMPLETED');
   }
 
   get overdueCount(): number {
-    const value = this.getValue(
-      this.summary,
-      'overdueTasks',
-      'overdue',
-      'overdueCount'
-    );
-
-    return Number(value) || this.overdueTasks.length;
+    return Number(
+      this.getValue(
+        this.summary,
+        'overdueTasks',
+        'overdue',
+        'overdueCount'
+      )
+    ) || this.overdueTasks.length;
   }
 
   get completionRate(): number {
@@ -279,17 +295,29 @@ export class DashboardManagerCompoent implements OnInit {
     );
 
     if (directValue !== 0 && directValue !== undefined) {
-      return Math.min(100, Math.max(0, Number(directValue) || 0));
+      return Math.min(
+        100,
+        Math.max(0, Number(directValue) || 0)
+      );
     }
 
     if (this.totalTasks === 0) {
       return 0;
     }
 
-    return Math.round((this.completedTasks / this.totalTasks) * 100);
+    return Math.round(
+      (this.completedTasks / this.totalTasks) * 100
+    );
   }
 
-  get statusEntries(): Array<{ key: string; label: string; count: number }> {
+  /**
+   * Danh sách trạng thái dùng trong HTML.
+   */
+  get statusEntries(): Array<{
+    key: string;
+    label: string;
+    count: number;
+  }> {
     const statuses = [
       { key: 'NOT_STARTED', label: 'Chưa bắt đầu' },
       { key: 'IN_PROGRESS', label: 'Đang xử lý' },
@@ -304,32 +332,62 @@ export class DashboardManagerCompoent implements OnInit {
     }));
   }
 
+  /**
+   * Đọc số task từ statusCounts hoặc object trạng thái trực tiếp.
+   */
   statusCount(status: string): number {
-    const normalized = status.toUpperCase();
-    const source = this.taskStatus;
+    const normalized = String(status ?? '').toUpperCase();
+
+    const aliases: Record<string, string[]> = {
+      NOT_STARTED: [
+        'NOT_STARTED',
+        'notStarted',
+        'not_started'
+      ],
+      IN_PROGRESS: [
+        'IN_PROGRESS',
+        'inProgress',
+        'in_progress'
+      ],
+      PENDING: [
+        'PENDING',
+        'pending'
+      ],
+      COMPLETED: [
+        'COMPLETED',
+        'completed'
+      ],
+      CANCELLED: [
+        'CANCELLED',
+        'cancelled'
+      ]
+    };
+
+    const source = this.taskStatus?.statusCounts ?? this.taskStatus;
 
     if (Array.isArray(source)) {
       const found = source.find((item: any) =>
-        String(item?.status ?? item?.name ?? item?.taskStatus ?? '')
-          .toUpperCase() === normalized
+        String(
+          item?.status ??
+          item?.name ??
+          item?.taskStatus ??
+          ''
+        ).toUpperCase() === normalized
       );
 
       return Number(
-        found?.count ?? found?.total ?? found?.taskCount ?? found?.value ?? 0
+        found?.count ??
+        found?.total ??
+        found?.taskCount ??
+        found?.value ??
+        0
       ) || 0;
     }
-
-    const aliases: Record<string, string[]> = {
-      NOT_STARTED: ['NOT_STARTED', 'notStarted', 'not_started'],
-      IN_PROGRESS: ['IN_PROGRESS', 'inProgress', 'in_progress'],
-      PENDING: ['PENDING', 'pending'],
-      COMPLETED: ['COMPLETED', 'completed'],
-      CANCELLED: ['CANCELLED', 'cancelled']
-    };
 
     for (const key of aliases[normalized] ?? [normalized]) {
       if (source?.[key] !== undefined && source?.[key] !== null) {
         const value = source[key];
+
         return Number(
           typeof value === 'object'
             ? value.count ?? value.total ?? value.value ?? 0
@@ -348,7 +406,9 @@ export class DashboardManagerCompoent implements OnInit {
 
     return Math.min(
       100,
-      Math.round((this.statusCount(status) / this.totalTasks) * 100)
+      Math.round(
+        (this.statusCount(status) / this.totalTasks) * 100
+      )
     );
   }
 
@@ -361,7 +421,9 @@ export class DashboardManagerCompoent implements OnInit {
       CANCELLED: 'Đã hủy'
     };
 
-    return labels[String(status ?? '').toUpperCase()] ?? status ?? 'Không rõ';
+    return labels[String(status ?? '').toUpperCase()]
+      ?? status
+      ?? 'Không rõ';
   }
 
   statusClass(status: string): string {
@@ -373,7 +435,8 @@ export class DashboardManagerCompoent implements OnInit {
       CANCELLED: 'cancelled'
     };
 
-    return classes[String(status ?? '').toUpperCase()] ?? 'not-started';
+    return classes[String(status ?? '').toUpperCase()]
+      ?? 'not-started';
   }
 
   projectName(project: any): string {
@@ -398,24 +461,50 @@ export class DashboardManagerCompoent implements OnInit {
       'progress'
     );
 
-    if (directValue !== undefined && directValue !== null && directValue !== 0) {
-      return Math.min(100, Math.max(0, Number(directValue) || 0));
+    if (
+      directValue !== undefined &&
+      directValue !== null &&
+      directValue !== 0
+    ) {
+      return Math.min(
+        100,
+        Math.max(0, Number(directValue) || 0)
+      );
     }
 
     const total = Number(
-      this.getValue(project, 'totalTasks', 'taskCount', 'total', 'totalTask')
+      this.getValue(
+        project,
+        'totalTasks',
+        'taskCount',
+        'total',
+        'totalTask'
+      )
     ) || 0;
 
     const completed = Number(
-      this.getValue(project, 'completedTasks', 'completed', 'doneTasks')
+      this.getValue(
+        project,
+        'completedTasks',
+        'completed',
+        'doneTasks'
+      )
     ) || 0;
 
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
+    return total > 0
+      ? Math.round((completed / total) * 100)
+      : 0;
   }
 
   projectTaskCount(project: any): number {
     return Number(
-      this.getValue(project, 'totalTasks', 'taskCount', 'total', 'totalTask')
+      this.getValue(
+        project,
+        'totalTasks',
+        'taskCount',
+        'total',
+        'totalTask'
+      )
     ) || 0;
   }
 
@@ -429,7 +518,13 @@ export class DashboardManagerCompoent implements OnInit {
 
   userTaskCount(user: any): number {
     return Number(
-      this.getValue(user, 'totalTasks', 'taskCount', 'total', 'assignedTasks')
+      this.getValue(
+        user,
+        'totalTasks',
+        'taskCount',
+        'total',
+        'assignedTasks'
+      )
     ) || 0;
   }
 
@@ -442,7 +537,13 @@ export class DashboardManagerCompoent implements OnInit {
 
   customerTaskCount(customer: any): number {
     return Number(
-      this.getValue(customer, 'totalTasks', 'taskCount', 'total', 'totalTask')
+      this.getValue(
+        customer,
+        'totalTasks',
+        'taskCount',
+        'total',
+        'totalTask'
+      )
     ) || 0;
   }
 
