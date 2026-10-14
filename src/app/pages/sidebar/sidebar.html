@@ -1,16 +1,21 @@
 <aside class="sidebar">
+  <!-- Logo -->
   <div class="sidebar-brand">
     <div class="brand-icon">T</div>
     <span>Team FT</span>
   </div>
 
-  <nav class="sidebar-nav">
-    <a routerLink="/dashboard" routerLinkActive="active"
+  <!-- Menu: chỉ ADMIN và MANAGER mới nhìn thấy -->
+  <nav class="sidebar-nav"
+       *ngIf="!authService.hasRole('ROLE_MEMBER')">
+
+    <a routerLink="/dashboard"
+       routerLinkActive="active"
        [routerLinkActiveOptions]="{ exact: true }">
       <span class="menu-icon">▦</span>
       <span>Tổng quan</span>
     </a>
-    
+
     <a routerLink="/task-management" routerLinkActive="active">
       <span class="menu-icon">☷</span>
       <span>Quản lý Task</span>
@@ -38,14 +43,28 @@
 
   </nav>
 
+  <!-- Thông tin người dùng -->
   <div class="sidebar-bottom">
-    <div class="profile-avatar">A</div>
+    <div class="profile-avatar">
+      {{ authService.getUsername()?.charAt(0)?.toUpperCase() || 'U' }}
+    </div>
 
     <div class="profile-info">
       <span *ngIf="authService.user$ | async as user">
         Xin chào, {{ user.username }}
       </span>
-      <span>Administrator</span>
+
+      <span *ngIf="authService.hasRole('ROLE_ADMIN')">
+        Administrator
+      </span>
+
+      <span *ngIf="authService.hasRole('ROLE_MANAGER')">
+        MANAGER
+      </span>
+
+      <span *ngIf="authService.hasRole('ROLE_MEMBER')">
+        MEMBER
+      </span>
     </div>
 
     <button

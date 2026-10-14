@@ -14,6 +14,7 @@ export class SidebarComponent {
 
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  
 
   logout(): void {
     this.authService.logout();
