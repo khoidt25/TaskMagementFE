@@ -287,7 +287,7 @@ loadTasks(): void {
   };
 
   this.taskRequest = this.taskService
-    .filterTasks(filters)
+    .filterManagerTask(filters)
     .pipe(
       timeout({ first: 15000 }),
       finalize(() => {
