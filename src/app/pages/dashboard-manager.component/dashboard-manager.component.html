@@ -342,175 +342,170 @@
           </div>
         </ng-template>
       </section>
-
-      <!-- NEW: Project task totals and member assignments -->
-      <section class="panel section-block assignment-summary-panel">
-        <div class="panel-heading">
-          <div>
-            <h2>Thống kê task theo Project và Member</h2>
-            <p>
-              Tổng task của từng project và số task được giao cho mỗi thành viên.
-            </p>
-          </div>
-
-          <span class="section-tag">PHÂN CÔNG</span>
-        </div>
-
-        <div
-          class="assignment-error"
-          *ngIf="projectMemberSummaryError">
-          <span>!</span>
-          <div>
-            <strong>Không tải được thống kê phân công</strong>
-            <p>{{ projectMemberSummaryError }}</p>
-          </div>
-        </div>
-
-        <ng-container *ngIf="!projectMemberSummaryError">
-          <div
-            class="assignment-empty"
-            *ngIf="projectMemberSummary.length === 0">
-            <span class="assignment-empty-icon">▦</span>
-            <strong>Chưa có dữ liệu phân công</strong>
-            <p>
-              Hãy kiểm tra Manager đã được giao project và các task đã
-              được phân công cho Member hay chưa.
-            </p>
-          </div>
-
-          <div
-            class="assignment-project"
-            *ngFor="
-              let project of projectMemberSummary;
-              trackBy: trackByProjectId
-            ">
-
-            <div class="assignment-project-header">
-              <div class="assignment-project-title">
-                <span class="assignment-project-icon">▦</span>
-                <div>
-                  <h3>
-                    {{ project.projectName || 'Project #' + project.projectId }}
-                  </h3>
-                  <p>Project ID: {{ project.projectId }}</p>
-                </div>
-              </div>
-
-              <div class="assignment-project-total">
-                <strong>{{ project.totalTasks }}</strong>
-                <span>Tổng task của project</span>
-              </div>
-            </div>
-
-            <div class="assignment-table-wrap">
-              <table class="assignment-table">
-                <thead>
-                  <tr>
-                    <th>Thành viên</th>
-                    <th>Member ID</th>
-                    <th class="assignment-number">Số task được giao</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr
-                    *ngFor="
-                      let member of project.members;
-                      trackBy: trackByMemberId
-                    ">
-
-                    <td>
-                      <div class="assignment-member">
-                        <span class="assignment-avatar">
-                          {{
-                            (member.memberName || 'M')
-                              .charAt(0)
-                              .toUpperCase()
-                          }}
-                        </span>
-
-                        <strong>
-                          {{ member.memberName || 'Member #' + member.memberId }}
-                        </strong>
-                      </div>
-                    </td>
-
-                    <td>
-                      <span class="assignment-id">
-                        {{ member.memberId }}
-                      </span>
-                    </td>
-
-                    <td class="assignment-number">
-                      <span class="assignment-task-count">
-                        {{ member.totalTasks }}
-                      </span>
-                    </td>
-                  </tr>
-
-                  <tr *ngIf="!project.members || project.members.length === 0">
-                    <td colspan="3" class="assignment-no-members">
-                      Project này chưa có Member được giao task.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="assignment-project-footer">
-              <span>
-                {{ project.members?.length || 0 }} thành viên có task được giao
-              </span>
-              <span>
-                Tổng task của project:
-                <strong>{{ project.totalTasks }}</strong>
-              </span>
-            </div>
-          </div>
-        </ng-container>
-      </section>
-
+      
       <!-- User and customer statistics -->
       <section class="dashboard-grid section-block">
-        <article class="panel">
-          <div class="panel-heading">
-            <div>
-              <h2>Công việc theo thành viên</h2>
-              <p>Thống kê số task được giao cho từng người.</p>
-            </div>
-            <span class="panel-icon">♙</span>
+
+<article class="panel assignment-summary-panel">
+
+  <div class="panel-heading">
+    <div>
+      <h2>Task theo Project và Member</h2>
+      <p>
+        Thống kê tổng task theo project và số task được giao cho từng thành viên.
+      </p>
+    </div>
+
+    <span class="panel-icon">♙</span>
+  </div>
+
+  <!-- Lỗi tải dữ liệu -->
+  <div
+    class="assignment-error"
+    *ngIf="projectMemberSummaryError">
+
+    <span>!</span>
+
+    <div>
+      <strong>Không tải được thống kê phân công</strong>
+      <p>{{ projectMemberSummaryError }}</p>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!projectMemberSummaryError">
+
+    <!-- Không có dữ liệu -->
+    <div
+      class="empty-state compact-empty"
+      *ngIf="projectMemberSummary.length === 0">
+
+      <strong>Chưa có dữ liệu phân công</strong>
+
+      <p>
+        Kiểm tra project, task và thành viên đã được phân công.
+      </p>
+    </div>
+
+    <!-- Danh sách project -->
+    <div
+      class="assignment-project"
+      *ngFor="
+        let project of projectMemberSummary;
+        trackBy: trackByProjectId
+      ">
+
+      <!-- Thông tin project -->
+      <div class="assignment-project-header">
+
+        <div class="assignment-project-title">
+          <span class="assignment-project-icon">▦</span>
+
+          <div>
+            <h3>
+              {{ project.projectName || 'Project #' + project.projectId }}
+            </h3>
+
+            <p>Project ID: {{ project.projectId }}</p>
           </div>
+        </div>
 
-          <div class="simple-list" *ngIf="userSummary.length > 0; else noUsers">
-            <div
-              class="simple-list-row"
-              *ngFor="let user of userSummary; trackBy: trackByIndex">
+        <div class="assignment-project-total">
+          <strong>{{ project.totalTasks }}</strong>
+          <span>Tổng task</span>
+        </div>
 
-              <div class="person-avatar">
-                {{ userName(user).charAt(0).toUpperCase() }}
-              </div>
+      </div>
 
-              <div class="simple-list-info">
-                <strong>{{ userName(user) }}</strong>
-                <span>
-                  {{ getValue(user, 'roleName', 'role', 'position') || 'Thành viên' }}
+      <!-- Thành viên của project -->
+      <div class="assignment-table-wrap">
+
+        <table class="assignment-table">
+
+          <thead>
+            <tr>
+              <th>Thành viên</th>
+              <th class="assignment-number">Số task</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let member of project.members;
+                trackBy: trackByMemberId
+              ">
+
+              <td>
+                <div class="assignment-member">
+
+                  <span class="assignment-avatar">
+                    {{
+                      (member.memberName || 'M')
+                        .charAt(0)
+                        .toUpperCase()
+                    }}
+                  </span>
+
+                  <div>
+                    <strong>
+                      {{
+                        member.memberName ||
+                        'Member #' + member.memberId
+                      }}
+                    </strong>
+
+                    <span class="assignment-member-id">
+                      ID: {{ member.memberId }}
+                    </span>
+                  </div>
+
+                </div>
+              </td>
+
+              <td class="assignment-number">
+                <span class="assignment-task-count">
+                  {{ member.totalTasks }}
                 </span>
-              </div>
+              </td>
 
-              <div class="simple-list-count">
-                <strong>{{ userTaskCount(user) }}</strong>
-                <span>task</span>
-              </div>
-            </div>
-          </div>
+            </tr>
 
-          <ng-template #noUsers>
-            <div class="empty-state compact-empty">
-              <strong>Chưa có thống kê thành viên</strong>
-              <p>Kiểm tra API thống kê task theo user.</p>
-            </div>
-          </ng-template>
-        </article>
+            <tr
+              *ngIf="
+                !project.members ||
+                project.members.length === 0
+              ">
+
+              <td colspan="2" class="assignment-no-members">
+                Chưa có thành viên được giao task.
+              </td>
+
+            </tr>
+
+          </tbody>
+        </table>
+
+      </div>
+
+      <!-- Tổng kết project -->
+      <div class="assignment-project-footer">
+        <span>
+          {{ project.members?.length || 0 }} thành viên
+        </span>
+
+        <span>
+          Tổng:
+          <strong>{{ project.totalTasks }}</strong> task
+        </span>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+</article>
+
 
         <article class="panel">
           <div class="panel-heading">
