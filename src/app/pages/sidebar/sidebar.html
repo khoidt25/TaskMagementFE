@@ -16,7 +16,7 @@
       <span>Tổng quan</span>
     </a>
 
-    <a routerLink="/manager"
+    <a *ngIf="!authService.hasRole('ROLE_ADMIN')" routerLink="/manager"
        routerLinkActive="active"
        [routerLinkActiveOptions]="{ exact: true }">
       <span class="menu-icon">▦</span>
