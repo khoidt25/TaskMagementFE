@@ -23,6 +23,22 @@ export interface ManagerProjectSummary {
   overdueTasks: number;
 }
 
+export interface OverdueTask {
+  taskId: number;
+  taskCode: string;
+  taskName: string;
+  projectId: number;
+  projectCode: string;
+  projectName: string;
+  status: string;
+  startDate: string | null;
+  deadline: string;
+  priorityId: number | null;
+  createdBy: number | null;
+  creatorUsername: string | null;
+  overdueDays: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -59,4 +75,11 @@ export class DashboardManagerService {
       `${this.apiUrl}/project-summary`
     );
   }
+
+getOverdueTasks() {
+  return this.http.get<any[]>(
+    `${this.apiUrl}/overdue-tasks`
+  );
+}
+
 }

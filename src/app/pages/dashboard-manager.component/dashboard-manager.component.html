@@ -425,9 +425,16 @@
             <div class="overdue-task-info">
               <strong>{{ taskName(task) }}</strong>
               <span>
-                {{ getValue(task, 'taskCode', 'code') || 'Task' }}
-                <span class="overdue-divider">•</span>
-                Hạn: {{ formatDate(getValue(task, 'deadline', 'dueDate')) }}
+                 {{ getValue(task, 'taskCode', 'code') || 'Task' }}
+  <span class="overdue-divider">•</span>
+  Dự án:
+  {{ getValue(task, 'projectName', 'projectCode') || 'Chưa xác định' }}
+  <span class="overdue-divider">•</span>
+  Hạn: {{ formatDate(getValue(task, 'deadline', 'dueDate')) }}
+  <span class="overdue-divider">•</span>
+  <strong class="overdue-days">
+    Quá {{ getValue(task, 'overdueDays') }} ngày
+  </strong>
               </span>
             </div>
 

@@ -111,7 +111,16 @@ export class DashboardManagerCompoent implements OnInit {
             console.error('Không tải được thống kê project:', error);
             return of(null);
           })
-        )
+        ),
+       // BỔ SUNG: Danh sách task quá hạn theo Manager
+    overdueTasks: this.dashboardManagerService
+      .getOverdueTasks()
+      .pipe(
+      catchError((error) => {
+        console.error('Không tải được danh sách task quá hạn:', error);
+        return of(null);
+      })
+    )
     })
       .pipe(
         finalize(() => {
@@ -158,7 +167,10 @@ export class DashboardManagerCompoent implements OnInit {
            * Các API userSummary, customerSummary và overdueTasks
            * không thuộc DashboardManagerService hiện tại.
            */
-          this.overdueTasks = [];
+          this.overdueTasks = this.toArray(
+            data.overdueTasks
+          );
+
           this.userSummary = [];
           this.customerSummary = [];
 
@@ -168,7 +180,8 @@ export class DashboardManagerCompoent implements OnInit {
             data.summary === null &&
             data.taskStatus === null &&
             data.statistics === null &&
-            data.projectSummary === null
+            data.projectSummary === null && 
+            data.overdueTasks === null
           ) {
             this.errorMessage =
               'Không thể tải dữ liệu Dashboard. ' +

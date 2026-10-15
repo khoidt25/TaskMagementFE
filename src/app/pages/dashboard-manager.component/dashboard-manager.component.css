@@ -1270,6 +1270,11 @@ app-sidebar {
   z-index: 1000;
 }
 
+.overdue-days {
+  color: #dc4c4c;
+  font-weight: 700;
+}
+
 /* Responsive */
 
 @media (max-width: 1250px) {
