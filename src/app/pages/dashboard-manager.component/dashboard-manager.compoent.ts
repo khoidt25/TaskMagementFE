@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -15,6 +16,24 @@ import {
 
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+
+interface MemberTaskSummary {
+  memberId: number;
+  memberName: string;
+  totalTasks: number;
+}
+
+interface ProjectMemberSummary {
+  projectId: number;
+  projectName: string;
+  totalTasks: number;
+  members: MemberTaskSummary[];
+}
+
+interface ManagerProjectTaskResponse {
+  managerId: number;
+  projects: ProjectMemberSummary[];
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -41,6 +60,10 @@ export class DashboardManagerCompoent implements OnInit {
   summary: any = {};
   taskStatus: any = {};
   projectSummary: any[] = [];
+
+  // Thống kê số task của từng Member trong từng Project.
+  projectMemberSummary: ProjectMemberSummary[] = [];
+  projectMemberSummaryError = '';
 
   // Các thuộc tính giữ lại để tương thích HTML hiện tại.
   overdueTasks: any[] = [];
@@ -72,13 +95,38 @@ export class DashboardManagerCompoent implements OnInit {
   }
 
   /**
+   * Lấy ID Manager từ localStorage.
+   * Điều chỉnh khóa userId nếu ứng dụng đang lưu bằng tên khác.
+   */
+  private getManagerId(): number | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const value = Number(window.localStorage.getItem('userId'));
+
+    return Number.isInteger(value) && value > 0
+      ? value
+      : null;
+  }
+
+  /**
    * Tải dữ liệu Dashboard Manager.
-   * Backend xác định Manager từ JWT / Authentication.
+   * Các API độc lập: lỗi một API không làm hỏng toàn bộ forkJoin.
    */
   loadDashboard(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.projectMemberSummaryError = '';
     this.currentDate = new Date();
+
+    const managerId = this.getManagerId();
+
+    if (managerId === null) {
+      this.projectMemberSummary = [];
+      this.projectMemberSummaryError =
+        'Không tìm thấy ID Manager. Vui lòng kiểm tra thông tin đăng nhập.';
+    }
 
     forkJoin({
       summary: this.dashboardManagerService.getSummary().pipe(
@@ -112,15 +160,39 @@ export class DashboardManagerCompoent implements OnInit {
             return of(null);
           })
         ),
-       // BỔ SUNG: Danh sách task quá hạn theo Manager
-    overdueTasks: this.dashboardManagerService
-      .getOverdueTasks()
-      .pipe(
-      catchError((error) => {
-        console.error('Không tải được danh sách task quá hạn:', error);
-        return of(null);
-      })
-    )
+
+      // Danh sách task quá hạn theo Manager.
+      overdueTasks: this.dashboardManagerService
+        .getOverdueTasks()
+        .pipe(
+          catchError((error) => {
+            console.error('Không tải được danh sách task quá hạn:', error);
+            return of(null);
+          })
+        ),
+
+      // Thống kê tổng task của Project và task từng Member.
+      projectMemberTaskSummary: managerId !== null
+        ? this.dashboardManagerService
+            .getProjectMemberTaskSummary(managerId)
+            .pipe(
+              catchError((error) => {
+                console.error(
+                  'Không tải được thống kê task theo Project và Member:',
+                  error
+                );
+
+                this.projectMemberSummaryError =
+                  error.status === 403
+                    ? 'Bạn không có quyền xem thống kê Project và Member.'
+                    : error.status === 404
+                      ? 'Không tìm thấy API thống kê Project và Member.'
+                      : 'Không thể tải thống kê Project và Member.';
+
+                return of(null);
+              })
+            )
+        : of(null)
     })
       .pipe(
         finalize(() => {
@@ -131,23 +203,16 @@ export class DashboardManagerCompoent implements OnInit {
       .subscribe({
         next: (data) => {
           this.summary = data.summary ?? {};
-
           this.taskStatus = data.taskStatus ?? {};
 
           /*
-           * API /statistics/status trả về:
+           * API /statistics/status có thể trả về:
            * {
            *   "NOT_STARTED": 2,
            *   "IN_PROGRESS": 4,
            *   "PENDING": 1,
            *   "COMPLETED": 3,
            *   "CANCELLED": 0
-           * }
-           *
-           * API /task-status trả về:
-           * {
-           *   "totalTasks": 10,
-           *   "statusCounts": { ... }
            * }
            */
           const statistics = data.statistics;
@@ -163,30 +228,66 @@ export class DashboardManagerCompoent implements OnInit {
             data.projectSummary
           );
 
-          /*
-           * Các API userSummary, customerSummary và overdueTasks
-           * không thuộc DashboardManagerService hiện tại.
-           */
           this.overdueTasks = this.toArray(
             data.overdueTasks
           );
 
+          // Hai API này chưa được tích hợp trong DashboardManagerService.
           this.userSummary = [];
           this.customerSummary = [];
 
-          this.cdr.markForCheck();
+          /*
+           * API trả về:
+           * {
+           *   "managerId": 2,
+           *   "projects": [
+           *     {
+           *       "projectId": 10,
+           *       "projectName": "Project A",
+           *       "totalTasks": 10,
+           *       "members": [
+           *         {
+           *           "memberId": 5,
+           *           "memberName": "Nguyen Van A",
+           *           "totalTasks": 4
+           *         }
+           *       ]
+           *     }
+           *   ]
+           * }
+           */
+          const assignmentData =
+            data.projectMemberTaskSummary as
+              | ManagerProjectTaskResponse
+              | null;
+
+          this.projectMemberSummary =
+            Array.isArray(assignmentData?.projects)
+              ? assignmentData.projects
+              : [];
+
+          if (
+            managerId !== null &&
+            assignmentData === null &&
+            !this.projectMemberSummaryError
+          ) {
+            this.projectMemberSummaryError =
+              'Không nhận được dữ liệu thống kê Project và Member.';
+          }
 
           if (
             data.summary === null &&
             data.taskStatus === null &&
             data.statistics === null &&
-            data.projectSummary === null && 
+            data.projectSummary === null &&
             data.overdueTasks === null
           ) {
             this.errorMessage =
               'Không thể tải dữ liệu Dashboard. ' +
               'Vui lòng kiểm tra API, JWT và quyền MANAGER.';
           }
+
+          this.cdr.markForCheck();
         },
 
         error: (error) => {
@@ -560,6 +661,47 @@ export class DashboardManagerCompoent implements OnInit {
     ) || 0;
   }
 
+  /**
+   * Tính số ngày quá hạn.
+   * Không tính công việc đã hoàn thành hoặc đã hủy.
+   */
+  getOverdueDays(task: any): number {
+    if (!task?.deadline) {
+      return 0;
+    }
+
+    const status = String(
+      task.status?.statusName ??
+      task.status?.name ??
+      task.status ??
+      ''
+    ).toUpperCase();
+
+    if (['COMPLETED', 'CANCELLED'].includes(status)) {
+      return 0;
+    }
+
+    const deadline = new Date(
+      `${String(task.deadline).substring(0, 10)}T00:00:00`
+    );
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (Number.isNaN(deadline.getTime())) {
+      return 0;
+    }
+
+    deadline.setHours(0, 0, 0, 0);
+
+    const difference = today.getTime() - deadline.getTime();
+    const days = Math.floor(
+      difference / (1000 * 60 * 60 * 24)
+    );
+
+    return Math.max(0, days);
+  }
+
   formatDate(value: any): string {
     if (!value) {
       return '—';
@@ -576,5 +718,19 @@ export class DashboardManagerCompoent implements OnInit {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  trackByProjectId(
+    index: number,
+    project: ProjectMemberSummary
+  ): number {
+    return project.projectId;
+  }
+
+  trackByMemberId(
+    index: number,
+    member: MemberTaskSummary
+  ): number {
+    return member.memberId;
   }
 }

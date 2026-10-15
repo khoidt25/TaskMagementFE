@@ -59,12 +59,6 @@ export class DashboardService {
         );
     }
 
-    // getTaskStatusManager() {
-    //     return this.http.get<Record<string, number>>(
-    //         `${this.baseUrl}/tasks/statistics/status`
-    //     );
-    // }   
-
     logout(): Observable<any> {
         return this.http.post(
             `${this.baseUrl}/auth/logout`,

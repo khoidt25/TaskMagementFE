@@ -76,10 +76,19 @@ export class DashboardManagerService {
     );
   }
 
-getOverdueTasks() {
-  return this.http.get<any[]>(
+  getOverdueTasks() {
+    return this.http.get<any[]>(
     `${this.apiUrl}/overdue-tasks`
   );
 }
+
+  getProjectMemberTaskSummary(managerId: number) {
+            return this.http.get<any>(
+            `${this.apiUrl}/project-member-task-summary`,
+             {
+                params: { managerId: managerId.toString() }
+             }
+        );
+  }
 
 }

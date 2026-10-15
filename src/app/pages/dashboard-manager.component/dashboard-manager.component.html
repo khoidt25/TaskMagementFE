@@ -1,3 +1,4 @@
+
 <div class="dashboard-layout">
   <app-sidebar></app-sidebar>
 
@@ -28,8 +29,7 @@
           type="button"
           class="refresh-button"
           [disabled]="loading"
-          (click)="loadDashboard()"
-        >
+          (click)="loadDashboard()">
           <span [class.spinning]="loading">⟳</span>
           <span>{{ loading ? 'Đang tải...' : 'Làm mới' }}</span>
         </button>
@@ -48,6 +48,7 @@
     </div>
 
     <ng-container *ngIf="!loading">
+
       <!-- Welcome -->
       <section class="welcome-banner">
         <div class="welcome-content">
@@ -73,21 +74,25 @@
         <div class="welcome-art" aria-hidden="true">
           <div class="art-circle art-circle-one"></div>
           <div class="art-circle art-circle-two"></div>
+
           <div class="art-card">
             <div class="art-card-header">
               <span class="art-check">✓</span>
               <span>Team progress</span>
             </div>
+
             <div class="art-progress-label">
               <span>Hoàn thành</span>
               <strong>{{ completionRate }}%</strong>
             </div>
+
             <div class="art-progress-track">
               <div
                 class="art-progress-fill"
-                [style.width.%]="completionRate"
-              ></div>
+                [style.width.%]="completionRate">
+              </div>
             </div>
+
             <div class="art-card-footer">
               <span class="art-avatar">T</span>
               <span class="art-avatar art-avatar-two">M</span>
@@ -167,16 +172,17 @@
           <div class="status-list">
             <div
               class="status-row"
-              *ngFor="let item of statusEntries; trackBy: trackByIndex"
-            >
+              *ngFor="let item of statusEntries; trackBy: trackByIndex">
+
               <div class="status-row-heading">
                 <div class="status-name">
                   <span
                     class="status-dot"
-                    [ngClass]="'status-' + statusClass(item.key)"
-                  ></span>
+                    [ngClass]="'status-' + statusClass(item.key)">
+                  </span>
                   <span>{{ item.label }}</span>
                 </div>
+
                 <div class="status-numbers">
                   <strong>{{ item.count }}</strong>
                   <span>{{ statusPercentage(item.key) }}%</span>
@@ -187,8 +193,8 @@
                 <div
                   class="status-fill"
                   [ngClass]="'status-' + statusClass(item.key)"
-                  [style.width.%]="statusPercentage(item.key)"
-                ></div>
+                  [style.width.%]="statusPercentage(item.key)">
+                </div>
               </div>
             </div>
           </div>
@@ -215,8 +221,8 @@
               class="completion-ring"
               [style.--completion]="completionRate + '%'"
               role="img"
-              [attr.aria-label]="'Hoàn thành ' + completionRate + '%'"
-            >
+              [attr.aria-label]="'Hoàn thành ' + completionRate + '%'">
+
               <div class="completion-ring-inner">
                 <strong>{{ completionRate }}%</strong>
                 <span>Hoàn thành</span>
@@ -229,16 +235,19 @@
                 <span>Đã hoàn thành</span>
                 <strong>{{ completedTasks }}</strong>
               </div>
+
               <div class="completion-summary-row">
                 <span class="summary-marker marker-progress"></span>
                 <span>Đang xử lý</span>
                 <strong>{{ inProgressTasks }}</strong>
               </div>
+
               <div class="completion-summary-row">
                 <span class="summary-marker marker-not-started"></span>
                 <span>Chưa bắt đầu</span>
                 <strong>{{ notStartedTasks }}</strong>
               </div>
+
               <div class="completion-summary-row">
                 <span class="summary-marker marker-overdue"></span>
                 <span>Quá hạn</span>
@@ -251,26 +260,32 @@
             <span>Tiến độ tổng thể</span>
             <strong>{{ completedTasks }} / {{ totalTasks }} task</strong>
           </div>
+
           <div class="completion-track">
             <div
               class="completion-track-fill"
-              [style.width.%]="completionRate"
-            ></div>
+              [style.width.%]="completionRate">
+            </div>
           </div>
         </article>
       </section>
 
-      <!-- Project statistics -->
+      <!-- Existing project statistics -->
       <section class="panel section-block">
         <div class="panel-heading">
           <div>
             <h2>Tiến độ theo project</h2>
             <p>Theo dõi số lượng và mức độ hoàn thành của từng dự án.</p>
           </div>
-          <a routerLink="/projects" class="text-link">Quản lý project →</a>
+          <a routerLink="/projects" class="text-link">
+            Quản lý project →
+          </a>
         </div>
 
-        <div class="table-wrapper" *ngIf="projectSummary.length > 0; else noProjects">
+        <div
+          class="table-wrapper"
+          *ngIf="projectSummary.length > 0; else noProjects">
+
           <table class="data-table">
             <thead>
               <tr>
@@ -280,8 +295,11 @@
                 <th>Tiến độ</th>
               </tr>
             </thead>
+
             <tbody>
-              <tr *ngFor="let project of projectSummary; trackBy: trackByIndex">
+              <tr
+                *ngFor="let project of projectSummary; trackBy: trackByIndex">
+
                 <td>
                   <div class="project-cell">
                     <span class="project-symbol">▦</span>
@@ -293,19 +311,20 @@
                     </div>
                   </div>
                 </td>
+
                 <td>{{ projectTaskCount(project) }}</td>
+
                 <td>
-                  {{
-                    getValue(project, 'completedTasks', 'completed', 'doneTasks')
-                  }}
+                  {{ getValue(project, 'completedTasks', 'completed', 'doneTasks') }}
                 </td>
+
                 <td>
                   <div class="table-progress">
                     <div class="table-progress-track">
                       <div
                         class="table-progress-fill"
-                        [style.width.%]="projectCompletionRate(project)"
-                      ></div>
+                        [style.width.%]="projectCompletionRate(project)">
+                      </div>
                     </div>
                     <strong>{{ projectCompletionRate(project) }}%</strong>
                   </div>
@@ -324,6 +343,133 @@
         </ng-template>
       </section>
 
+      <!-- NEW: Project task totals and member assignments -->
+      <section class="panel section-block assignment-summary-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Thống kê task theo Project và Member</h2>
+            <p>
+              Tổng task của từng project và số task được giao cho mỗi thành viên.
+            </p>
+          </div>
+
+          <span class="section-tag">PHÂN CÔNG</span>
+        </div>
+
+        <div
+          class="assignment-error"
+          *ngIf="projectMemberSummaryError">
+          <span>!</span>
+          <div>
+            <strong>Không tải được thống kê phân công</strong>
+            <p>{{ projectMemberSummaryError }}</p>
+          </div>
+        </div>
+
+        <ng-container *ngIf="!projectMemberSummaryError">
+          <div
+            class="assignment-empty"
+            *ngIf="projectMemberSummary.length === 0">
+            <span class="assignment-empty-icon">▦</span>
+            <strong>Chưa có dữ liệu phân công</strong>
+            <p>
+              Hãy kiểm tra Manager đã được giao project và các task đã
+              được phân công cho Member hay chưa.
+            </p>
+          </div>
+
+          <div
+            class="assignment-project"
+            *ngFor="
+              let project of projectMemberSummary;
+              trackBy: trackByProjectId
+            ">
+
+            <div class="assignment-project-header">
+              <div class="assignment-project-title">
+                <span class="assignment-project-icon">▦</span>
+                <div>
+                  <h3>
+                    {{ project.projectName || 'Project #' + project.projectId }}
+                  </h3>
+                  <p>Project ID: {{ project.projectId }}</p>
+                </div>
+              </div>
+
+              <div class="assignment-project-total">
+                <strong>{{ project.totalTasks }}</strong>
+                <span>Tổng task của project</span>
+              </div>
+            </div>
+
+            <div class="assignment-table-wrap">
+              <table class="assignment-table">
+                <thead>
+                  <tr>
+                    <th>Thành viên</th>
+                    <th>Member ID</th>
+                    <th class="assignment-number">Số task được giao</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr
+                    *ngFor="
+                      let member of project.members;
+                      trackBy: trackByMemberId
+                    ">
+
+                    <td>
+                      <div class="assignment-member">
+                        <span class="assignment-avatar">
+                          {{
+                            (member.memberName || 'M')
+                              .charAt(0)
+                              .toUpperCase()
+                          }}
+                        </span>
+
+                        <strong>
+                          {{ member.memberName || 'Member #' + member.memberId }}
+                        </strong>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span class="assignment-id">
+                        {{ member.memberId }}
+                      </span>
+                    </td>
+
+                    <td class="assignment-number">
+                      <span class="assignment-task-count">
+                        {{ member.totalTasks }}
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr *ngIf="!project.members || project.members.length === 0">
+                    <td colspan="3" class="assignment-no-members">
+                      Project này chưa có Member được giao task.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="assignment-project-footer">
+              <span>
+                {{ project.members?.length || 0 }} thành viên có task được giao
+              </span>
+              <span>
+                Tổng task của project:
+                <strong>{{ project.totalTasks }}</strong>
+              </span>
+            </div>
+          </div>
+        </ng-container>
+      </section>
+
       <!-- User and customer statistics -->
       <section class="dashboard-grid section-block">
         <article class="panel">
@@ -338,17 +484,19 @@
           <div class="simple-list" *ngIf="userSummary.length > 0; else noUsers">
             <div
               class="simple-list-row"
-              *ngFor="let user of userSummary; trackBy: trackByIndex"
-            >
+              *ngFor="let user of userSummary; trackBy: trackByIndex">
+
               <div class="person-avatar">
                 {{ userName(user).charAt(0).toUpperCase() }}
               </div>
+
               <div class="simple-list-info">
                 <strong>{{ userName(user) }}</strong>
                 <span>
                   {{ getValue(user, 'roleName', 'role', 'position') || 'Thành viên' }}
                 </span>
               </div>
+
               <div class="simple-list-count">
                 <strong>{{ userTaskCount(user) }}</strong>
                 <span>task</span>
@@ -375,13 +523,14 @@
 
           <div
             class="simple-list"
-            *ngIf="customerSummary.length > 0; else noCustomers"
-          >
+            *ngIf="customerSummary.length > 0; else noCustomers">
+
             <div
               class="simple-list-row"
-              *ngFor="let customer of customerSummary; trackBy: trackByIndex"
-            >
+              *ngFor="let customer of customerSummary; trackBy: trackByIndex">
+
               <div class="customer-avatar">◇</div>
+
               <div class="simple-list-info">
                 <strong>{{ customerName(customer) }}</strong>
                 <span>
@@ -389,6 +538,7 @@
                   project
                 </span>
               </div>
+
               <div class="simple-list-count">
                 <strong>{{ customerTaskCount(customer) }}</strong>
                 <span>task</span>
@@ -415,37 +565,43 @@
           <a routerLink="/tasks" class="text-link">Xem tất cả task →</a>
         </div>
 
-        <div class="overdue-list" *ngIf="overdueTasks.length > 0; else noOverdue">
+        <div
+          class="overdue-list"
+          *ngIf="overdueTasks.length > 0; else noOverdue">
+
           <div
             class="overdue-row"
-            *ngFor="let task of overdueTasks; trackBy: trackByIndex"
-          >
+            *ngFor="let task of overdueTasks; trackBy: trackByIndex">
+
             <div class="overdue-alert-icon">!</div>
 
             <div class="overdue-task-info">
               <strong>{{ taskName(task) }}</strong>
+
               <span>
-                 {{ getValue(task, 'taskCode', 'code') || 'Task' }}
-  <span class="overdue-divider">•</span>
-  Dự án:
-  {{ getValue(task, 'projectName', 'projectCode') || 'Chưa xác định' }}
-  <span class="overdue-divider">•</span>
-  Hạn: {{ formatDate(getValue(task, 'deadline', 'dueDate')) }}
-  <span class="overdue-divider">•</span>
-  <strong class="overdue-days">
-    Quá {{ getValue(task, 'overdueDays') }} ngày
-  </strong>
+                {{ getValue(task, 'taskCode', 'code') || 'Task' }}
+                <span class="overdue-divider">•</span>
+                Dự án:
+                {{ getValue(task, 'projectName', 'projectCode') || 'Chưa xác định' }}
+                <span class="overdue-divider">•</span>
+                Hạn: {{ formatDate(getValue(task, 'deadline', 'dueDate')) }}
+                <span class="overdue-divider">•</span>
+                <strong class="overdue-days">
+                  Quá hạn {{ getOverdueDays(task) }} ngày
+                </strong>
               </span>
             </div>
 
             <span
               class="task-status"
-              [ngClass]="'status-badge-' + statusClass(task.status)"
-            >
+              [ngClass]="'status-badge-' + statusClass(task.status)">
               {{ statusLabel(task.status) }}
             </span>
 
-            <a routerLink="/tasks" class="overdue-action" aria-label="Xem task">
+            <a
+              routerLink="/tasks"
+              class="overdue-action"
+              aria-label="Xem task">
               →
             </a>
           </div>
