@@ -16,6 +16,7 @@ import {
 
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { error } from 'console';
 
 interface MemberTaskSummary {
   memberId: number;
@@ -161,6 +162,12 @@ export class DashboardManagerCompoent implements OnInit {
           })
         ),
 
+      customerSummary: this.dashboardManagerService.getCustomerSummary().pipe(
+         catchError((error) => {
+            console.error('Không tải được thống kê khách hàng:',error);
+            return of(null);
+         })
+      ), 
       // Danh sách task quá hạn theo Manager.
       overdueTasks: this.dashboardManagerService
         .getOverdueTasks()
@@ -170,6 +177,7 @@ export class DashboardManagerCompoent implements OnInit {
             return of(null);
           })
         ),
+      
 
       // Thống kê tổng task của Project và task từng Member.
       projectMemberTaskSummary: managerId !== null
@@ -232,9 +240,11 @@ export class DashboardManagerCompoent implements OnInit {
             data.overdueTasks
           );
 
+          this.customerSummary = this.toArray(data.customerSummary);
+
           // Hai API này chưa được tích hợp trong DashboardManagerService.
           this.userSummary = [];
-          this.customerSummary = [];
+         // this.customerSummary = [];
 
           /*
            * API trả về:
@@ -660,6 +670,27 @@ export class DashboardManagerCompoent implements OnInit {
       )
     ) || 0;
   }
+
+  
+customerCompletionRate(customer: any): number {
+  const total = this.customerTaskCount(customer);
+
+  const completed = Number(
+    this.getValue(
+      customer,
+      'completedTasks',
+      'completed',
+      'doneTasks'
+    )
+  ) || 0;
+
+  if (total <= 0) {
+    return 0;
+  }
+
+  return Math.min(100, Math.round((completed / total) * 100));
+}
+
 
   /**
    * Tính số ngày quá hạn.

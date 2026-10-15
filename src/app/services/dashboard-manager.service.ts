@@ -91,4 +91,10 @@ export class DashboardManagerService {
         );
   }
 
+  getCustomerSummary() {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/customer-summary`
+  );
+}
+
 }
