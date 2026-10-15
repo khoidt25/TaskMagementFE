@@ -16,6 +16,13 @@
       <span>Tổng quan</span>
     </a>
 
+    <a routerLink="/manager"
+       routerLinkActive="active"
+       [routerLinkActiveOptions]="{ exact: true }">
+      <span class="menu-icon">▦</span>
+      <span>Tổng quan Manager</span>
+    </a>
+    
     <a *ngIf="!authService.hasRole('ROLE_MANAGER')" routerLink="/task-management" routerLinkActive="active">
       <span class="menu-icon">☷</span>
       <span>Quản lý Task</span>
