@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface MemberOptionResponse {
   memberId: number;
@@ -13,7 +14,10 @@ export interface MemberOptionResponse {
 export class ManagerScopeService {
 
   // URL API Spring Boot
-  private readonly apiUrl = 'http://localhost:8081/api/manager';
+
+  //private readonly apiUrl = 'http://localhost:8081/api/manager';
+  
+   private readonly apiUrl = `${environment.apiUrl}/manager`;
 
   constructor(private http: HttpClient) {}
 

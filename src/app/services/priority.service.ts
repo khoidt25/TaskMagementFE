@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Priority {
   priorityId: number;
@@ -16,7 +17,9 @@ export interface Priority {
 })
 export class PriorityService {
 
-  private readonly apiUrl = 'http://localhost:8081/api/priorities';
+  //private readonly apiUrl = 'http://localhost:8081/api/priorities';
+
+  private readonly apiUrl = `${environment.apiUrl}/priorities`;
 
   constructor(private http: HttpClient) {}
 

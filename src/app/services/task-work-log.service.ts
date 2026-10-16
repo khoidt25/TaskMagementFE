@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface TaskWorkLog {
   workLogId?: number;
@@ -41,8 +42,9 @@ export interface PageResponse<T> {
 export class TaskWorkLogService {
   private readonly http = inject(HttpClient);
 
-  private readonly apiUrl =
-    'http://localhost:8081/api/task-work-logs';
+  //private readonly apiUrl ='http://localhost:8081/api/task-work-logs';
+
+  private readonly apiUrl = `${environment.apiUrl}/task-work-logs`;
 
   getByDate(
     workDate: string,

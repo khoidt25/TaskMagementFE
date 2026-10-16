@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface TaskRole {
   taskRoleId: number;
@@ -24,7 +25,10 @@ export interface PageResponse<T> {
   providedIn: 'root'
 })
 export class TaskRoleService {
-  private readonly apiUrl = 'http://localhost:8081/api/task-roles';
+
+ // private readonly apiUrl = 'http://localhost:8081/api/task-roles';
+
+    private readonly apiUrl = `${environment.apiUrl}/task-roles`;
 
   constructor(private http: HttpClient) {}
 

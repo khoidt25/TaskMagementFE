@@ -4,6 +4,8 @@ import {
   HttpParams
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+
 
 export type ProjectStatus = 'ACTIVE' | 'INACTIVE';
 
@@ -37,7 +39,10 @@ export interface ProjectRequest {
 })
 export class ProjectService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8081/api/projects';
+
+  //private readonly apiUrl = 'http://localhost:8081/api/projects';
+
+  private readonly apiUrl = `${environment.apiUrl}/projects`;
 
   getProjects(
     page = 0,

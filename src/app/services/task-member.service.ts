@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type TaskStatus =
   | 'NOT_STARTED'
@@ -54,9 +55,12 @@ export interface MemberWorkLogRow {
   providedIn: 'root'
 })
 export class TaskMemberService {
+  
   private readonly http = inject(HttpClient);
 
-  private readonly apiUrl = 'http://localhost:8081/api/tasks';
+  //private readonly apiUrl = 'http://localhost:8081/api/tasks';
+
+  private readonly apiUrl = `${environment.apiUrl}/tasks`;
 
   getMyTasks(userId: number): Observable<TaskMember[]> {
     return this.http.get<TaskMember[]>(

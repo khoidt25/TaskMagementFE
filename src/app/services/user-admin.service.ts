@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface UserResponse {
   userId: number;
@@ -39,8 +40,14 @@ export interface ManagerMembersRequest {
 export class UserAdminService {
   private readonly http = inject(HttpClient);
 
-  private readonly baseUrl = 'http://localhost:8081/api/users';
-  private readonly assignmentUrl ='http://localhost:8081/api/admin/manager-assignments';
+  //private readonly baseUrl = 'http://localhost:8081/api/users';
+  //private readonly assignmentUrl ='http://localhost:8081/api/admin/manager-assignments';
+
+  
+  private readonly baseUrl = `${environment.apiUrl}/users`;
+
+  private readonly assignmentUrl = `${environment.apiUrl}/admin/manager-assignments`;
+
 
   getAll(): Observable<UserResponse[]> {
     return this.http.get<UserResponse[]>(this.baseUrl);

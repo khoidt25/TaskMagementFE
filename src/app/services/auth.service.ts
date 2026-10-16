@@ -3,6 +3,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
   username: string;
@@ -25,8 +26,11 @@ export interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8081/api/auth';
+ 
+  //private readonly apiUrl = 'http://localhost:8081/api/auth';
 
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
+  
   private readonly tokenKey = 'accessToken';
   private readonly userKey = 'user';
 

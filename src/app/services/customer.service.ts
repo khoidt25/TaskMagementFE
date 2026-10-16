@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Customer {
   customerId: number;
@@ -30,7 +31,10 @@ export interface CustomerPage {
 })
 export class CustomerService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8081/api/customers';
+
+  //private readonly apiUrl = 'http://localhost:8081/api/customers';
+
+  private readonly apiUrl = `${environment.apiUrl}/customers`;
 
   findAll(): Observable<Customer[]> {
      return this.http.get<Customer[]>(`${this.apiUrl}/all`);
