@@ -48,6 +48,8 @@ export interface TaskFilter {
   sort?: string;
 }
 
+
+
 export interface TaskRequest {
   taskCode: string;
   taskName: string;
@@ -148,6 +150,7 @@ export class TaskAssignmentService {
     );
   }
 
+  //get toan bo task
   filterTasks(
     filters: TaskFilter
   ): Observable<TaskPageResponse<TaskItem>> {

@@ -12,6 +12,7 @@ import { TaskItem } from '../../services/task-assignment.service';
 import { TaskRole,TaskRoleService } from '../../services/task-role.service';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { ManagerScopeService, MemberOptionResponse } from '../../services/managerScope.service';
 
 interface UserItem {
   userId: number;
@@ -71,8 +72,14 @@ export class TaskAssignmentComponent implements OnInit {
 
   tasks: TaskItem[] = [];
   users: UserItem[] = [];
+
   members: MemberItem[] = [];
+  
   taskRoles: TaskRole[] = [];
+
+  membersOption: MemberOptionResponse[] = [];
+  selectedMemberId: number | null = null;
+
   
   projects: Project[] = [];
   customers: Customer[] = [];
@@ -133,6 +140,7 @@ sortOption = 'taskId,desc';
     private customerService: CustomerService,
     private taskRoleService: TaskRoleService,
     private authService : AuthService,
+    private managerScopeService: ManagerScopeService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -143,6 +151,8 @@ sortOption = 'taskId,desc';
     this.loadProjectOptions();
     this.loadCustomers();
     this.loadTaskRoles();
+    this.loadMembersOption();
+
   }
 
   private emptyForm() {
@@ -180,6 +190,32 @@ sortOption = 'taskId,desc';
     });
   }
 
+  loadMembersOption(): void {
+  const managerId = this.authService.getUserId();
+
+  if (managerId == null || Number(managerId) <= 0) {
+    console.error('Không xác định được ID Manager đăng nhập.');
+    return;
+  }
+
+  this.managerScopeService.getMembersOption(Number(managerId)).subscribe({
+    next: (data) => {
+      this.membersOption = Array.isArray(data) ? data : [];
+
+      console.log('Manager ID:', managerId);
+      console.log('Danh sách member option:', this.membersOption);
+    },
+    error: (error) => {
+      console.error('Lỗi API lấy member option:', {
+        status: error.status,
+        message: error.error?.message,
+        url: error.url,
+        body: error.error
+      });
+    }
+  });
+}
+
   loadCustomers(): void {
     this.customerService.findAll().subscribe({
       next: (data) => {
@@ -210,7 +246,7 @@ sortOption = 'taskId,desc';
         .includes(keyword)
     );
   }
-
+  
   get inProgressCount(): number {
     return this.tasks.filter(
       task => task.status === 'IN_PROGRESS'

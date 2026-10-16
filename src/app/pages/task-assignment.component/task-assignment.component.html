@@ -182,18 +182,20 @@
   <label for="filterUserId">Thành viên</label>
 
   <select
-    id="filterUserId"
+    id="memberId"
     name="filterUserId"
     [(ngModel)]="filterUserId">
 
     <option [ngValue]="null">Tất cả thành viên</option>
 
     <option
-      *ngFor="let user of users"
-      [ngValue]="user.userId">
-      {{ user.fullName || user.username }}
+      *ngFor="let member of membersOption"
+      [ngValue]="member.memberId">
+      {{ member.memberName }}
     </option>
   </select>
+
+
 </div>
 
   <div class="filter-field">
