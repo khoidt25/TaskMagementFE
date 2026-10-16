@@ -594,26 +594,42 @@
 
         <form (ngSubmit)="submitAssignment()" #assignmentForm="ngForm">
           <div class="form-grid">
-            <div class="form-field">
-              <label for="userId">Thành viên <span>*</span></label>
-              <select
-                id="userId"
-                name="userId"
-                [(ngModel)]="form.userId"
-                [disabled]="editingMemberId !== null"
-                required>
-                <option [ngValue]="null">Chọn thành viên</option>
-                <option
-                  *ngFor="let user of activeUsers"
-                  [ngValue]="user.userId">
-                  {{ user.fullName }} ({{ user.username }})
-                </option>
-              </select>
-              <small *ngIf="loadingUsers">Đang tải thành viên...</small>
-              <small *ngIf="!loadingUsers && activeUsers.length === 0">
-                Không có người dùng ACTIVE.
-              </small>
-            </div>
+      
+<div class="form-field">
+  <label for="userId">Thành viên <span>*</span></label>
+
+  <select
+    id="userId"
+    name="userId"
+    [(ngModel)]="form.userId"
+    [disabled]="editingMemberId !== null || loadingMembersOption"
+    required>
+
+    <option [ngValue]="null">
+      {{
+        loadingMembersOption
+          ? 'Đang tải thành viên...'
+          : 'Chọn thành viên'
+      }}
+    </option>
+
+    <option
+      *ngFor="let member of membersOption"
+      [ngValue]="member.memberId">
+      {{ member.memberName }}
+    </option>
+  </select>
+
+  <small *ngIf="loadingMembersOption">
+    Đang tải thành viên của Manager...
+  </small>
+
+  <small
+    *ngIf="!loadingMembersOption && membersOption.length === 0">
+    Manager chưa có thành viên nào được phân quyền.
+  </small>
+</div>
+
 
             <div class="form-field">
               <label for="taskRoleId">

@@ -101,7 +101,7 @@ export class TaskAssignmentComponent implements OnInit {
   loadingTasks = false;
   loadingUsers = false;
   loadingMembers = false;
-  //loadingTaskRole = false;
+  loadingMembersOption = false;
 
   saving = false;
 
@@ -194,26 +194,30 @@ sortOption = 'taskId,desc';
   const managerId = this.authService.getUserId();
 
   if (managerId == null || Number(managerId) <= 0) {
-    console.error('Không xác định được ID Manager đăng nhập.');
+    this.membersOption = [];
+    console.error('Không xác định được Manager ID.');
     return;
   }
 
-  this.managerScopeService.getMembersOption(Number(managerId)).subscribe({
-    next: (data) => {
-      this.membersOption = Array.isArray(data) ? data : [];
+  this.loadingMembersOption = true;
 
-      console.log('Manager ID:', managerId);
-      console.log('Danh sách member option:', this.membersOption);
-    },
-    error: (error) => {
-      console.error('Lỗi API lấy member option:', {
-        status: error.status,
-        message: error.error?.message,
-        url: error.url,
-        body: error.error
-      });
-    }
-  });
+  this.managerScopeService
+    .getMembersOption(Number(managerId))
+    .pipe(
+      finalize(() => {
+        this.loadingMembersOption = false;
+      })
+    )
+    .subscribe({
+      next: (data) => {
+        this.membersOption = Array.isArray(data) ? data : [];
+        console.log('Member của Manager:', this.membersOption);
+      },
+      error: (err) => {
+        this.membersOption = [];
+        console.error('Lỗi tải member của Manager:', err);
+      }
+    });
 }
 
   loadCustomers(): void {
@@ -246,7 +250,7 @@ sortOption = 'taskId,desc';
         .includes(keyword)
     );
   }
-  
+
   get inProgressCount(): number {
     return this.tasks.filter(
       task => task.status === 'IN_PROGRESS'
