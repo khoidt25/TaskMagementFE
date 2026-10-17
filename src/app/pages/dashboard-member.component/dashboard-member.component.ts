@@ -70,14 +70,12 @@ export class DashboardMemberComponent implements OnInit {
     { value: 'CANCELLED', label: 'Đã hủy' }
   ];
 
-  // Work Log
   selectedWorkDate = this.getToday();
 
   workLogRows: MemberWorkLogRow[] = [];
   workLogLoading = false;
   savingWorkLogId: number | null = null;
 
-  // Phân trang danh sách Work Log trên giao diện
   workLogPage = 0;
   workLogPageSize = 10;
 
@@ -94,10 +92,6 @@ export class DashboardMemberComponent implements OnInit {
   ngOnInit(): void {
     this.loadMemberDashboard();
   }
-
-  // =========================================================
-  // DASHBOARD
-  // =========================================================
 
   loadMemberDashboard(): void {
     this.errorMessage = '';
@@ -168,10 +162,6 @@ export class DashboardMemberComponent implements OnInit {
       });
   }
 
-  // =========================================================
-  // TASK FILTERS
-  // =========================================================
-
   applyFilters(): void {
     const keyword = this.keyword.trim().toLowerCase();
 
@@ -228,10 +218,6 @@ export class DashboardMemberComponent implements OnInit {
     this.selectedStatus = 'ALL';
     this.applyFilters();
   }
-
-  // =========================================================
-  // TASK STATISTICS
-  // =========================================================
 
   get totalTasks(): number {
     return this.tasks.length;
@@ -330,10 +316,6 @@ export class DashboardMemberComponent implements OnInit {
     return classes[status] ?? '';
   }
 
-  // =========================================================
-  // UPDATE TASK
-  // =========================================================
-
   saveTask(task: TaskMember): void {
     if (this.savingId !== null) {
       return;
@@ -403,10 +385,6 @@ export class DashboardMemberComponent implements OnInit {
   ): number {
     return task.taskMemberId;
   }
-
-  // =========================================================
-  // WORK LOG: PAGINATION
-  // =========================================================
 
   get totalWorkLogPages(): number {
     return Math.max(
@@ -479,10 +457,6 @@ export class DashboardMemberComponent implements OnInit {
     );
   }
 
-  // =========================================================
-  // WORK LOG: LOAD BY DATE
-  // =========================================================
-
   loadWorkLogs(): void {
     if (!this.selectedWorkDate) {
       return;
@@ -528,8 +502,7 @@ export class DashboardMemberComponent implements OnInit {
         })
       )
       .subscribe(logs => {
-        // Ghép nhật ký đã lưu với danh sách task được giao.
-        // Task chưa có Work Log vẫn được hiển thị để đăng ký giờ.
+    
         this.workLogRows = this.tasks.map(task => {
           const log = logs.find(
             item =>
@@ -553,8 +526,7 @@ export class DashboardMemberComponent implements OnInit {
             note: log?.note ?? ''
           } as MemberWorkLogRow;
         });
-
-        // Trở về trang hợp lệ nếu số dòng giảm.
+        
         this.workLogPage = Math.min(
           this.workLogPage,
           this.totalWorkLogPages - 1
@@ -563,10 +535,6 @@ export class DashboardMemberComponent implements OnInit {
         this.cdr.detectChanges();
       });
   }
-
-  // =========================================================
-  // WORK LOG: SAVE
-  // =========================================================
 
   saveWorkLog(row: MemberWorkLogRow): void {
     this.errorMessage = '';
@@ -646,10 +614,6 @@ export class DashboardMemberComponent implements OnInit {
         }
       });
   }
-
-  // =========================================================
-  // LOGOUT
-  // =========================================================
 
   logout(): void {
     this.authService.logout();
