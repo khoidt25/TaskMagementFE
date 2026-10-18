@@ -4,7 +4,7 @@
     <div class="brand-icon">T</div>
     <span>Team FT</span>
   </div>
-
+  
   <!-- Menu: chỉ ADMIN và MANAGER mới nhìn thấy -->
   <nav class="sidebar-nav"
        *ngIf="!authService.hasRole('ROLE_MEMBER')">
@@ -55,8 +55,35 @@
       <span class="menu-icon">♙</span>
       <span>Thành viên</span>
     </a>
+    <a *ngIf="!authService.hasRole('ROLE_ADMIN')" routerLink="/team-worklog" routerLinkActive="active" 
+    class="sidebar-menu-item">
+    <span class="menu-icon">🕒</span>
+    <span>Worklog nhóm</span>
+</a>
+
+  
+
 
   </nav>
+
+  <!-- Thông báo: ADMIN, MANAGER và MEMBER đều nhìn thấy -->
+  <!-- <nav class="sidebar-nav sidebar-notification-nav">
+    <a
+      routerLink="/notifications"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="sidebar-link">
+
+      <span class="menu-icon">♧</span>
+      <span>Thông báo</span>
+
+      <span
+        class="notification-badge"
+        *ngIf="unreadCount > 0">
+        {{ unreadCount > 99 ? '99+' : unreadCount }}
+      </span>
+    </a>
+  </nav> -->
 
   <!-- Thông tin người dùng -->
   <div class="sidebar-bottom">

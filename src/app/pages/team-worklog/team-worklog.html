@@ -1,0 +1,125 @@
+
+<div class="team-worklog">
+  <!-- Sidebar bên trái -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Nội dung Worklog bên phải -->
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h2>Worklog nhóm</h2>
+        <p>Theo dõi thời gian làm việc của các thành viên thuộc nhóm quản lý.</p>
+      </div>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="filter-card">
+      <div class="filter-field">
+        <label for="from">Từ ngày</label>
+        <input id="from" type="date" [(ngModel)]="from" />
+      </div>
+
+      <div class="filter-field">
+        <label for="to">Đến ngày</label>
+        <input id="to" type="date" [(ngModel)]="to" />
+      </div>
+
+      <button
+        type="button"
+        class="btn-search"
+        (click)="search()"
+        [disabled]="loading">
+        {{ loading ? 'Đang tải...' : 'Tìm kiếm' }}
+      </button>
+    </div>
+
+    <!-- Tổng số bản ghi -->
+    <div class="summary">
+      Tổng số bản ghi:
+      <strong>{{ totalElements }}</strong>
+    </div>
+
+    <!-- Thông báo lỗi -->
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Bảng Worklog -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Thành viên</th>
+            <th>Mã task</th>
+            <th>Tên task</th>
+            <th>Ngày làm việc</th>
+            <th>Giờ dự kiến</th>
+            <th>Giờ thực tế</th>
+            <th>Ghi chú</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="7" class="empty-state">
+              Đang tải dữ liệu...
+            </td>
+          </tr>
+
+          <tr *ngIf="!loading && logs.length === 0">
+            <td colspan="7" class="empty-state">
+              Không có Worklog trong khoảng thời gian này.
+            </td>
+          </tr>
+
+          <tr *ngFor="let log of logs; trackBy: trackWorkLog">
+            <td>{{ log.memberName || ('Member #' + log.memberId) }}</td>
+            <td>{{ log.taskCode || '-' }}</td>
+            <td>{{ log.taskName || '-' }}</td>
+            <td>{{ log.workDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ log.plannedHours ?? 0 }} giờ</td>
+            <td>{{ log.actualHours ?? 0 }} giờ</td>
+            <td class="note-cell">{{ log.note || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Phân trang -->
+    <div class="pagination">
+      <div class="page-size">
+        <label for="pageSize">Số dòng:</label>
+        <select
+          id="pageSize"
+          [ngModel]="pageSize"
+          (ngModelChange)="changePageSize($event)"
+          [disabled]="loading">
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+        </select>
+      </div>
+
+      <div class="page-controls">
+        <button
+          type="button"
+          (click)="previousPage()"
+          [disabled]="page === 0 || loading">
+          Trước
+        </button>
+
+        <span>
+          Trang {{ totalPages === 0 ? 0 : page + 1 }}
+          / {{ totalPages }}
+        </span>
+
+        <button
+          type="button"
+          (click)="nextPage()"
+          [disabled]="page + 1 >= totalPages || loading">
+          Sau
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

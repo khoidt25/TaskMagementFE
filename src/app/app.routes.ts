@@ -10,6 +10,8 @@ import { UsersComponent } from './pages/users.component/users.component';
 import { DashboardMemberComponent } from './pages/dashboard-member.component/dashboard-member.component';
 import { DashboardManagerCompoent } from './pages/dashboard-manager.component/dashboard-manager.compoent';
 import { TaskManagerComponent } from './pages/task-manager.component/task-manager.component';
+import { NotificationBellComponent } from './pages/notification-bell/notification-bell';
+import { TeamWorklogComponent } from './pages/team-worklog/team-worklog';
 
 export const routes: Routes = [
   {
@@ -62,6 +64,11 @@ export const routes: Routes = [
     path: 'task-manager',
     canActivate: [authGuard],
     component: TaskManagerComponent
+  },
+  {  path: 'team-worklog',
+     canActivate: [authGuard],
+     component: TeamWorklogComponent,
+
   },
   {
     path: '',

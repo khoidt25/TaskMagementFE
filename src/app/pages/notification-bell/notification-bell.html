@@ -1,0 +1,108 @@
+
+<div class="notification-wrapper">
+  <button
+    type="button"
+    class="notification-bell"
+    aria-label="Thông báo"
+    [attr.aria-expanded]="isOpen"
+    (click)="toggleDropdown()">
+
+    <span class="bell-icon">
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true">
+
+    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+    <path d="M10 21h4" />
+  </svg>
+</span>
+    <span
+      class="unread-badge"
+      *ngIf="unreadCount > 0">
+      {{ unreadCount > 99 ? '99+' : unreadCount }}
+    </span>
+  </button>
+
+  <section
+    class="notification-panel"
+    *ngIf="isOpen">
+
+    <header class="notification-header">
+      <div>
+        <h3>Thông báo</h3>
+        <p>{{ unreadCount }} thông báo chưa đọc</p>
+      </div>
+
+      <button
+        type="button"
+        class="mark-all-button"
+        [disabled]="unreadCount === 0"
+        (click)="markAllAsRead()">
+        Đọc tất cả
+      </button>
+    </header>
+
+    <div class="notification-error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="notification-loading" *ngIf="loading">
+      Đang tải thông báo...
+    </div>
+
+    <div
+      class="notification-empty"
+      *ngIf="!loading && notifications.length === 0">
+      <span class="empty-icon">♧</span>
+      <p>Bạn chưa có thông báo nào</p>
+    </div>
+
+    
+<div class="notification-list">
+  <button
+    type="button"
+    class="notification-item"
+    *ngFor="let item of notifications; trackBy: trackById"
+    [class.unread]="isUnread(item)"
+    [ngClass]="getTypeClass(item.notificationType)"
+    (click)="markAsRead(item)">
+
+    <span
+      class="notification-dot"
+      [class.hidden]="!isUnread(item)">
+    </span>
+
+    <span class="notification-content">
+      <span class="notification-type">
+        {{ getTypeLabel(item.notificationType) }}
+      </span>
+
+      <strong class="notification-title">
+        {{ item.title }}
+      </strong>
+
+      <span class="notification-message">
+        {{ item.message }}
+      </span>
+
+      <time class="notification-time">
+        {{ item.createdAt ? (item.createdAt | date:'dd/MM/yyyy HH:mm') : '' }}
+      </time>
+    </span>
+  </button>
+</div>
+
+    <footer class="notification-footer"
+      *ngIf="notifications.length > 0">
+      Hiển thị 10 thông báo gần nhất
+    </footer>
+  </section>
+</div>
+

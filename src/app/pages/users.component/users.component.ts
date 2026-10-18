@@ -282,10 +282,6 @@ export class UsersComponent implements OnInit, OnDestroy {
       : 'inactive';
   }
 
-  // =========================
-  // SEARCH AND PAGINATION
-  // =========================
-
   applyFilters(): void {
     const keyword = this.keyword.trim().toLowerCase();
 
@@ -378,19 +374,11 @@ export class UsersComponent implements OnInit, OnDestroy {
     return user.userId;
   }
 
-  // =========================
-  // SELECT USER
-  // =========================
-
   selectUser(user: UserResponse): void {
     this.selectedUser = user;
     this.errorMessage = '';
     this.successMessage = '';
   }
-
-  // =========================
-  // CREATE USER
-  // =========================
 
   startCreate(): void {
     this.isEditMode = false;
@@ -479,10 +467,6 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.errorMessage =
       'Backend hiện chưa có API cập nhật username/email.';
   }
-
-  // =========================
-  // CHANGE ROLE
-  // =========================
 
   changeRole(user: UserResponse, event: Event): void {
     const select = event.target as HTMLSelectElement;

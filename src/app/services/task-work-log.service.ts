@@ -68,4 +68,22 @@ export class TaskWorkLogService {
       request
     );
   }
+
+  getTeamWorkLogs(
+  from: string,
+  to: string,
+  page: number = 0,
+  size: number = 10
+) {
+    return this.http.get<any>(`${this.apiUrl}/manager/range`,
+    {
+        params: {
+          from,
+          to,
+          page: page.toString(),
+          size: size.toString()
+        }
+      }
+    );
+  }
 }

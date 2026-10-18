@@ -4,11 +4,12 @@ import {
   Component,
   OnInit,
   ChangeDetectorRef,
-  inject
+  inject, 
+  DestroyRef
 } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { NavigationEnd,Router,RouterModule } from '@angular/router';
+import { forkJoin, timer,of,merge } from 'rxjs';
+import { catchError, finalize, filter, switchMap } from 'rxjs/operators';
 
 import {
   DashboardManagerService
@@ -17,6 +18,10 @@ import {
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { error } from 'console';
+
+import { NotificationBellComponent } from '../notification-bell/notification-bell';
+import { NotificationService } from '../../services/notification.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface MemberTaskSummary {
   memberId: number;
@@ -39,7 +44,7 @@ interface ManagerProjectTaskResponse {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, SidebarComponent],
+  imports: [CommonModule, RouterModule, SidebarComponent, NotificationBellComponent],
   templateUrl: './dashboard-manager.component.html',
   styleUrl: './dashboard-manager.component.css'
 })
@@ -52,8 +57,13 @@ export class DashboardManagerCompoent implements OnInit {
 
   private readonly cdr = inject(ChangeDetectorRef);
 
+  private readonly router = inject(Router);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   loading = false;
   errorMessage = '';
+  unreadCount = 0;
 
   username = 'Người dùng';
   currentDate = new Date();
@@ -71,9 +81,88 @@ export class DashboardManagerCompoent implements OnInit {
   userSummary: any[] = [];
   customerSummary: any[] = [];
 
+  private readonly notificationService = inject(NotificationService);
+
   ngOnInit(): void {
     this.loadUsername();
     this.loadDashboard();
+
+    console.log('[Sidebar] Component initialized');
+
+    // Tải ngay khi khởi tạo, làm mới mỗi 20 giây,
+    // và tải lại khi chuyển trang sau khi đăng nhập.
+    const refresh$ = merge(
+      timer(0, 20000),
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      )
+    );
+
+    refresh$
+      .pipe(
+        switchMap(() =>
+          this.notificationService.getUnreadCount().pipe(
+            catchError(error => {
+              console.error(
+                '[Notification] API error:',
+                error.status,
+                error.error
+              );
+
+              // Giữ nguyên số đếm cũ nếu API gặp lỗi.
+              return of(null);
+            })
+          )
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(response => {
+        console.log('[Notification] API response:', response);
+
+        if (response === null || response === undefined) {
+          return;
+        }
+
+        let count: number;
+
+        if (typeof response === 'number') {
+          count = response;
+        } else {
+          const data = response as {
+            unreadCount?: number | string;
+            count?: number | string;
+          };
+
+          const value = data.unreadCount ?? data.count;
+
+          if (value === undefined || value === null) {
+            console.error(
+              '[Notification] Response không có unreadCount/count'
+            );
+            return;
+          }
+
+          count = Number(value);
+        }
+
+        if (!Number.isFinite(count) || count < 0) {
+          console.error(
+            '[Notification] Số lượng không hợp lệ:',
+            count
+          );
+          return;
+        }
+
+        this.unreadCount = count;
+
+        // Đảm bảo giao diện được cập nhật.
+        this.cdr.detectChanges();
+
+        console.log(
+          '[Notification] unreadCount đã cập nhật:',
+          this.unreadCount
+        );
+      });
   }
 
   /**

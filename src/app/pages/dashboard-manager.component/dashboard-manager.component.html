@@ -20,11 +20,16 @@
       </div>
 
       <div class="topbar-right">
+         <div class="sidebar-notification">
+          <app-notification-bell></app-notification-bell>
+      </div>
+  
+
         <div class="date-display">
           <span class="date-icon">▦</span>
           <span>{{ currentDate | date:'dd/MM/yyyy' }}</span>
         </div>
-
+        
         <button
           type="button"
           class="refresh-button"
