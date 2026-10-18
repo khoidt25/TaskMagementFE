@@ -330,7 +330,7 @@
                 <option [ngValue]="20">20 / trang</option>
                 <option [ngValue]="50">50 / trang</option>
               </select>
-
+              <div class="pagination-controls">
               <button
                 type="button"
                 [disabled]="taskPage === 0 || loadingTasks"
@@ -350,6 +350,7 @@
                 aria-label="Trang sau">
                 ›
               </button>
+              </div>
             </div>
           </div>
         </section>

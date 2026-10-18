@@ -25,6 +25,8 @@
       </div>
    -->
 
+
+   <div class="dashboard-actions">
         <div class="date-display">
           <span class="date-icon">▦</span>
           <span>{{ currentDate | date:'dd/MM/yyyy' }}</span>
@@ -38,6 +40,7 @@
           <span [class.spinning]="loading">⟳</span>
           <span>{{ loading ? 'Đang tải...' : 'Làm mới' }}</span>
         </button>
+    </div>    
       
     </header>
 

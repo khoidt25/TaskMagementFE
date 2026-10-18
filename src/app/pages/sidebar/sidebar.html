@@ -5,9 +5,13 @@
     <span>Team FT</span>
      <!-- <app-notification-bell></app-notification-bell> -->
   </div>
-  <div class="sidebar-notification-bell">
-    <app-notification-bell></app-notification-bell>
-  </div>
+ <!-- Chỉ MANAGER và MEMBER nhìn thấy chuông thông báo -->
+<div
+  class="sidebar-notification-bell"
+  *ngIf="!authService.hasRole('ROLE_ADMIN')">
+
+  <app-notification-bell></app-notification-bell>
+</div>
   
   <!-- Menu: chỉ ADMIN và MANAGER mới nhìn thấy -->
   <nav class="sidebar-nav"

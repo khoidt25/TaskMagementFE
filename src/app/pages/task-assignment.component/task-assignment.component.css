@@ -1262,6 +1262,33 @@ tbody tr:last-child td {
   cursor: not-allowed;
 }
 
+.pagination-info{
+  margin-bottom: 10px;
+}
+
+.pagination-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* justify-content: center; */
+  gap: 10px;
+  white-space: nowrap;
+  /* margin-top: 10px; */
+}
+
+.pagination-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.page-number {
+  white-space: nowrap;
+  text-align: center;
+}
+
+
 @media (max-width: 640px) {
   .task-pagination {
     align-items: flex-start;

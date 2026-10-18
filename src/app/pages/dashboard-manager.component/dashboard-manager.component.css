@@ -85,6 +85,13 @@
   padding-top: 26px;
 }
 
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
 .date-display {
   display: flex;
   align-items: center;
@@ -97,11 +104,13 @@
   color: #68758a;
   font-size: 12px;
   white-space: nowrap;
+  margin: 0;
 }
 
 .date-icon {
   color: #6e7ef4;
   font-size: 17px;
+  flex-shrink: 0;
 }
 
 .refresh-button {
