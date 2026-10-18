@@ -2,11 +2,14 @@
 :host {
   display: inline-flex;
   position: relative;
-  z-index: 1000;
+  z-index: 10002;
+  overflow: visible;
 }
 
 .notification-wrapper {
   position: relative;
+  z-index: 10002;
+  overflow: visible;
 }
 
 .notification-bell {
@@ -29,8 +32,22 @@
 }
 
 .bell-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
   font-size: 25px;
   line-height: 1;
+}
+
+.bell-icon svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+.notification-bell:hover .bell-icon {
+  color: #2563eb;
 }
 
 .unread-badge {
@@ -51,20 +68,27 @@
   font-weight: 700;
 }
 
+/* KHUNG THÔNG BÁO */
 .notification-panel {
-  position: absolute;
-  top: 50px;
-  right: 0;
+  position: fixed;
+  top: 80px;
+  left: 260px;
+  right: auto;
+
   width: 380px;
-  max-width: calc(100vw - 24px);
-  max-height: min(580px, 80vh);
+  max-width: calc(100vw - 280px);
+  max-height: min(580px, calc(100vh - 100px));
+
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   box-shadow: 0 12px 35px rgba(15, 23, 42, 0.16);
+
+  z-index: 2147483647;
 }
 
 .notification-header {
@@ -74,6 +98,7 @@
   justify-content: space-between;
   gap: 12px;
   border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .notification-header h3 {
@@ -110,7 +135,9 @@
 }
 
 .notification-list {
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .notification-item {
@@ -203,30 +230,44 @@
   border-top: 1px solid #e5e7eb;
   color: #9ca3af;
   font-size: 11px;
+  flex-shrink: 0;
 }
 
-.bell-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #475569;
+/* THANH CUỘN */
+.notification-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.notification-bell:hover .bell-icon {
-  color: #2563eb;
+.notification-list::-webkit-scrollbar-track {
+  background: #f9fafb;
 }
 
-.bell-icon svg {
-  width: 19px;
-  height: 19px;
-  display: block;
+.notification-list::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: #d1d5db;
 }
 
-@media (max-width: 480px) {
+.notification-list::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* MÀN HÌNH NHỎ */
+@media (max-width: 900px) {
   .notification-panel {
-    position: fixed;
+    left: 86px;
+    right: auto;
+    width: 380px;
+    max-width: calc(100vw - 100px);
+  }
+}
+
+@media (max-width: 560px) {
+  .notification-panel {
     top: 65px;
-    right: 12px;
-    width: calc(100vw - 24px);
+    left: 67px;
+    right: auto;
+    width: calc(100vw - 79px);
+    max-width: none;
+    max-height: calc(100vh - 80px);
   }
 }

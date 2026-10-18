@@ -10,7 +10,6 @@
   box-sizing: border-box;
 }
 
-/* SIDEBAR */
 .sidebar {
   position: sticky;
   top: 0;
@@ -24,7 +23,6 @@
   border-right: 1px solid #e8edf5;
 }
 
-/* LOGO */
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -50,7 +48,6 @@
   box-shadow: 0 5px 12px #2563eb30;
 }
 
-/* MENU */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -87,7 +84,6 @@
   font-weight: 700;
 }
 
-/* MENU ICON */
 .menu-icon {
   display: inline-flex;
   flex: 0 0 23px;
@@ -99,7 +95,6 @@
   text-align: center;
 }
 
-/* NOTIFICATION MENU */
 .sidebar-notification-nav {
   margin-top: 4px;
 }
@@ -112,7 +107,6 @@
   width: 100%;
 }
 
-/* UNREAD NOTIFICATION BADGE */
 .notification-badge {
   display: inline-flex;
   flex: 0 0 auto;
@@ -133,7 +127,6 @@
   box-shadow: 0 2px 5px #dc262633;
 }
 
-/* USER PROFILE */
 .sidebar-bottom {
   display: flex;
   align-items: center;
@@ -192,7 +185,59 @@
   color: #dc2626;
 }
 
-/* TABLET: COLLAPSED SIDEBAR */
+.sidebar-top {
+  position: relative;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 43px;
+  overflow: visible;
+}
+
+.sidebar-top .sidebar-brand {
+  min-width: 0;
+  margin-bottom: 0;
+  padding: 0 0 0 9px;
+}
+
+.sidebar-notification-bell {
+  position: relative;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-bottom: 20px;
+}
+
+.sidebar {
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+@media (max-width: 900px) {
+  .sidebar-top {
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 35px;
+  }
+
+  .sidebar-top .sidebar-brand {
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .sidebar-top {
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+}
+
 @media (max-width: 900px) {
   :host {
     flex: 0 0 76px;
@@ -209,7 +254,6 @@
     margin-bottom: 35px;
   }
 
-  /* Hide text labels, but do not hide the notification badge. */
   .sidebar-brand > span,
   .sidebar-nav a > span:not(.menu-icon):not(.notification-badge),
   .profile-info,
@@ -237,7 +281,6 @@
     padding-top: 15px;
   }
 
-  /* Keep unread count visible beside the notification icon. */
   .sidebar-nav a > .notification-badge {
     position: absolute;
     top: 1px;
@@ -260,7 +303,6 @@
   }
 }
 
-/* MOBILE: NARROW SIDEBAR */
 @media (max-width: 560px) {
   :host {
     flex: 0 0 59px;

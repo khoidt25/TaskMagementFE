@@ -19,19 +19,31 @@
   margin: 0;
   padding: 0;
   background: #f6f8fc;
+  position: relative;
 }
 
-/* Sidebar component */
+/* ========================================
+   SIDEBAR
+======================================== */
+
 .member-page > app-sidebar {
   display: block;
+  position: relative;
   flex: 0 0 250px;
   width: 250px;
   min-width: 250px;
   min-height: 100vh;
+  z-index: 10000;
+  overflow: visible;
 }
 
-/* Main content */
+/* ========================================
+   MAIN CONTENT
+======================================== */
+
 .member-content {
+  position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   width: calc(100% - 250px);
   min-width: 0;
@@ -96,10 +108,7 @@
   font-weight: 650;
   white-space: nowrap;
   cursor: pointer;
-  transition:
-    background 0.18s,
-    border-color 0.18s,
-    opacity 0.18s;
+  transition: background 0.18s, border-color 0.18s, opacity 0.18s;
 }
 
 .btn:disabled {
@@ -163,7 +172,7 @@
 }
 
 /* ========================================
-   STATISTICS CARDS
+   STATISTICS
 ======================================== */
 
 .stats-grid {
@@ -472,8 +481,6 @@ tbody tr:hover {
   background: #fbfcff;
 }
 
-/* Task name and code */
-
 .task-info {
   min-width: 180px;
 }
@@ -503,8 +510,6 @@ tbody tr:hover {
   font-size: 10px;
 }
 
-/* Role */
-
 .role-label {
   display: inline-block;
   padding: 5px 8px;
@@ -515,16 +520,12 @@ tbody tr:hover {
   white-space: nowrap;
 }
 
-/* Assigned work */
-
 .assigned-work {
   min-width: 150px;
   max-width: 230px;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
-
-/* Deadline */
 
 .deadline {
   color: #536078;
@@ -535,8 +536,6 @@ tbody tr:hover {
   color: #d92d20;
   font-weight: 750;
 }
-
-/* Status */
 
 .status-select {
   min-width: 125px;
@@ -562,8 +561,6 @@ input:disabled {
   color: #929bad;
   cursor: not-allowed;
 }
-
-/* Progress */
 
 .progress-cell {
   min-width: 125px;
@@ -611,8 +608,6 @@ input:disabled {
   background: #21a366;
 }
 
-/* Notes */
-
 .note-input {
   width: 145px;
   min-height: 32px;
@@ -631,8 +626,6 @@ input:disabled {
 .date-field input:focus {
   border-color: #9db9ff;
 }
-
-/* Planned and actual hours */
 
 .hour-input {
   display: flex;
@@ -785,10 +778,7 @@ input:disabled {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    background 0.18s,
-    border-color 0.18s,
-    color 0.18s;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
 }
 
 .pagination-controls button:hover:not(:disabled),
@@ -899,12 +889,17 @@ input:disabled {
   }
 
   .member-page > app-sidebar {
+    position: relative;
+    z-index: 10000;
     width: 100%;
     min-width: 0;
     min-height: auto;
+    overflow: visible;
   }
 
   .member-content {
+    position: relative;
+    z-index: 1;
     width: 100%;
     min-width: 0;
     padding: 16px 12px 24px;

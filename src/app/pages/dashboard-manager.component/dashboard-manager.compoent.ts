@@ -44,7 +44,7 @@ interface ManagerProjectTaskResponse {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, SidebarComponent, NotificationBellComponent],
+  imports: [CommonModule, RouterModule, SidebarComponent],
   templateUrl: './dashboard-manager.component.html',
   styleUrl: './dashboard-manager.component.css'
 })
@@ -87,82 +87,7 @@ export class DashboardManagerCompoent implements OnInit {
     this.loadUsername();
     this.loadDashboard();
 
-    console.log('[Sidebar] Component initialized');
-
-    // Tải ngay khi khởi tạo, làm mới mỗi 20 giây,
-    // và tải lại khi chuyển trang sau khi đăng nhập.
-    const refresh$ = merge(
-      timer(0, 20000),
-      this.router.events.pipe(
-        filter(event => event instanceof NavigationEnd)
-      )
-    );
-
-    refresh$
-      .pipe(
-        switchMap(() =>
-          this.notificationService.getUnreadCount().pipe(
-            catchError(error => {
-              console.error(
-                '[Notification] API error:',
-                error.status,
-                error.error
-              );
-
-              // Giữ nguyên số đếm cũ nếu API gặp lỗi.
-              return of(null);
-            })
-          )
-        ),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(response => {
-        console.log('[Notification] API response:', response);
-
-        if (response === null || response === undefined) {
-          return;
-        }
-
-        let count: number;
-
-        if (typeof response === 'number') {
-          count = response;
-        } else {
-          const data = response as {
-            unreadCount?: number | string;
-            count?: number | string;
-          };
-
-          const value = data.unreadCount ?? data.count;
-
-          if (value === undefined || value === null) {
-            console.error(
-              '[Notification] Response không có unreadCount/count'
-            );
-            return;
-          }
-
-          count = Number(value);
-        }
-
-        if (!Number.isFinite(count) || count < 0) {
-          console.error(
-            '[Notification] Số lượng không hợp lệ:',
-            count
-          );
-          return;
-        }
-
-        this.unreadCount = count;
-
-        // Đảm bảo giao diện được cập nhật.
-        this.cdr.detectChanges();
-
-        console.log(
-          '[Notification] unreadCount đã cập nhật:',
-          this.unreadCount
-        );
-      });
+   
   }
 
   /**
