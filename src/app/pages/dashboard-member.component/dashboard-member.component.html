@@ -355,8 +355,10 @@
         </thead>
 
         <tbody>
-          <tr
-            *ngFor="let task of filteredTasks; trackBy: trackByTask">
+         <tr
+            #taskRow
+            *ngFor="let task of filteredTasks; trackBy: trackByTask"
+            [attr.data-task-id]="task.taskId">
 
             <td class="task-info">
               <span class="task-code">{{ task.taskCode }}</span>

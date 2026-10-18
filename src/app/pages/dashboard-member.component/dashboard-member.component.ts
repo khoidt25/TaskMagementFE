@@ -29,6 +29,15 @@ import { AuthService } from '../../services/auth.service';
 import { TaskWorkLogService,TaskWorkLog,TaskWorkLogRequest } from '../../services/task-work-log.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 
+import {
+  ElementRef,
+  QueryList,
+  ViewChildren,
+  inject
+} from '@angular/core';
+
+import { ActivatedRoute } from '@angular/router';
+
 @Component({
   selector: 'app-member-dashboard',
   standalone: true,
@@ -81,6 +90,13 @@ export class DashboardMemberComponent implements OnInit {
 
   readonly workLogPageSizes = [10, 20, 50];
 
+  private route = inject(ActivatedRoute);
+
+  private targetTaskId: number | null = null;
+
+  @ViewChildren('taskRow')
+  taskRows!: QueryList<ElementRef<HTMLTableRowElement>>;
+
   constructor(
     private taskMemberService: TaskMemberService,
     private authService: AuthService,
@@ -91,6 +107,14 @@ export class DashboardMemberComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMemberDashboard();
+    this.route.queryParamMap.subscribe(params => {
+    const id = params.get('taskId');
+    this.targetTaskId = id ? Number(id) : null;
+
+    if (this.targetTaskId !== null) {
+      this.highlightTargetTask();
+    }
+});
   }
 
   loadMemberDashboard(): void {
@@ -526,7 +550,7 @@ export class DashboardMemberComponent implements OnInit {
             note: log?.note ?? ''
           } as MemberWorkLogRow;
         });
-        
+
         this.workLogPage = Math.min(
           this.workLogPage,
           this.totalWorkLogPages - 1
@@ -614,6 +638,27 @@ export class DashboardMemberComponent implements OnInit {
         }
       });
   }
+
+  private highlightTargetTask(): void {
+  setTimeout(() => {
+    const row = this.taskRows?.find(
+      element =>
+        Number(element.nativeElement.dataset['taskId']) ===
+        this.targetTaskId
+    );
+
+    if (!row) {
+      return;
+    }
+
+    row.nativeElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    row.nativeElement.classList.add('task-highlight');
+  }, 300);
+}
 
   logout(): void {
     this.authService.logout();

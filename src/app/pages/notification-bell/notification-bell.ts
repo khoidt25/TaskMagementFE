@@ -27,6 +27,7 @@ import {
   AppNotification,
   NotificationService
 } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-notification-bell',
@@ -54,6 +55,9 @@ export class NotificationBellComponent
   notifications: AppNotification[] = [];
   unreadCount = 0;
 
+  constructor(private authService: AuthService){
+
+  }
   ngOnInit(): void {
     // Tải ngay lần đầu, sau đó cập nhật mỗi 20 giây.
     timer(0, 20000)
@@ -301,20 +305,33 @@ export class NotificationBellComponent
       });
   }
 
-  /**
-   * Mở trang task tương ứng với thông báo.
-   */
-  openNotification(item: AppNotification): void {
-    this.isOpen = false;
+/**
+ * Mở task tương ứng với thông báo.
+ */
+openNotification(item: AppNotification): void {
+  this.isOpen = false;
 
-    if (item.taskId != null) {
-      this.router.navigate(['/tasks'], {
-        queryParams: {
-          taskId: item.taskId
-        }
-      });
-    }
+  if (item.taskId == null) {
+    return;
   }
+
+  // Member: chuyển đến Dashboard Member
+  if (this.authService.hasRole('ROLE_MEMBER')) {
+    this.router.navigate(['/member'], {
+      queryParams: {
+        taskId: item.taskId
+      }
+    });
+    return;
+  }
+
+  // Manager: giữ nguyên hành vi hiện tại
+  this.router.navigate(['/tasks'], {
+    queryParams: {
+      taskId: item.taskId
+    }
+  });
+}
 
   /**
    * Chuyển loại thông báo thành tiếng Việt.

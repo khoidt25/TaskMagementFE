@@ -808,6 +808,12 @@ input:disabled {
   white-space: nowrap;
 }
 
+.task-highlight {
+  background-color: #fff3cd !important;
+  outline: 2px solid #ffc107;
+  outline-offset: -2px;
+}
+
 /* ========================================
    RESPONSIVE - TABLET
 ======================================== */
