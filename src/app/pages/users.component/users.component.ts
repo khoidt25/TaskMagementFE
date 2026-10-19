@@ -22,6 +22,7 @@ import {
 
 interface UserForm {
   username: string;
+  fullName: string;
   email: string;
   password: string;
   roleId: number;
@@ -98,6 +99,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   private emptyForm(): UserForm {
     return {
       username: '',
+      fullName: '',
       email: '',
       password: '',
       roleId: 3
@@ -394,63 +396,67 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.form = this.emptyForm();
   }
 
-  saveUser(): void {
-    if (this.saving || this.isEditMode) {
-      return;
-    }
-
-    const username = this.form.username.trim();
-    const email = this.form.email.trim();
-
-    if (!username || !email || !this.form.password) {
-      this.errorMessage =
-        'Vui lòng nhập đầy đủ thông tin bắt buộc.';
-      return;
-    }
-
-    if (this.form.password.length < 6) {
-      this.errorMessage =
-        'Mật khẩu phải có ít nhất 6 ký tự.';
-      return;
-    }
-
-    const payload = {
-      username,
-      email,
-      password: this.form.password,
-      roleId: Number(this.form.roleId)
-    };
-
-    this.saving = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const sub = this.userService.create(payload)
-      .pipe(
-        timeout(15000),
-        finalize(() => {
-          this.saving = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe({
-        next: () => {
-          this.showForm = false;
-          this.form = this.emptyForm();
-          this.successMessage = 'Tạo tài khoản thành công.';
-          this.page = 0;
-          this.loadUsers();
-        },
-        error: (error: unknown) => {
-          this.errorMessage = this.getErrorMessage(
-            error,
-            'Không thể tạo tài khoản.'
-          );
-        }
-      });
-
-    this.subscriptions.add(sub);
+  
+saveUser(): void {
+  if (this.saving || this.isEditMode) {
+    return;
   }
+
+  const username = this.form.username.trim();
+  const fullName = this.form.fullName.trim();
+  const email = this.form.email.trim();
+
+  if (!username || !fullName || !email || !this.form.password) {
+    this.errorMessage =
+      'Vui lòng nhập đầy đủ thông tin bắt buộc.';
+    return;
+  }
+
+  if (this.form.password.length < 8) {
+    this.errorMessage =
+      'Mật khẩu phải có ít nhất 8 ký tự.';
+    return;
+  }
+
+  const payload = {
+    username,
+    fullName,
+    email,
+    password: this.form.password,
+    roleId: Number(this.form.roleId)
+  };
+
+  this.saving = true;
+  this.errorMessage = '';
+  this.successMessage = '';
+
+  const sub = this.userService.create(payload)
+    .pipe(
+      timeout(15000),
+      finalize(() => {
+        this.saving = false;
+        this.cdr.markForCheck();
+      })
+    )
+    .subscribe({
+      next: () => {
+        this.showForm = false;
+        this.form = this.emptyForm();
+        this.successMessage = 'Tạo tài khoản thành công.';
+        this.page = 0;
+        this.loadUsers();
+      },
+      error: (error: unknown) => {
+        this.errorMessage = this.getErrorMessage(
+          error,
+          'Không thể tạo tài khoản.'
+        );
+      }
+    });
+
+  this.subscriptions.add(sub);
+}
+
 
   startEdit(user: UserResponse): void {
     this.selectedUser = user;
@@ -459,6 +465,7 @@ export class UsersComponent implements OnInit, OnDestroy {
 
     this.form = {
       username: user.username ?? '',
+      fullName: user.fullName ?? '',
       email: user.email ?? '',
       password: '',
       roleId: this.getRoleId(user)

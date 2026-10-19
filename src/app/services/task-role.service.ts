@@ -26,10 +26,10 @@ export interface PageResponse<T> {
 })
 export class TaskRoleService {
 
- // private readonly apiUrl = 'http://localhost:8081/api/task-roles';
+  // private readonly apiUrl = 'http://localhost:8081/api/task-roles';
 
-    private readonly apiUrl = `${environment.apiUrl}/task-roles`;
-
+  private readonly apiUrl = `${environment.apiUrl}/task-roles`;
+  
   constructor(private http: HttpClient) {}
 
   getActiveTaskRoles(

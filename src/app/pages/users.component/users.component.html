@@ -511,6 +511,18 @@
             </div>
 
             <div class="form-field">
+            <label for="fullName">Họ và tên *</label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              [(ngModel)]="form.fullName"
+              required
+              maxlength="255"
+              placeholder="Nhập họ và tên">
+          </div>
+
+            <div class="form-field">
               <label for="email">Email *</label>
               <input
                 id="email"
