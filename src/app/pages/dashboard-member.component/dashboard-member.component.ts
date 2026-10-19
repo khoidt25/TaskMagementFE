@@ -1,40 +1,15 @@
 
-import {
-  Component,
-  OnInit,
-  ChangeDetectorRef
-} from '@angular/core';
-
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-
 import { EMPTY, of } from 'rxjs';
-import {
-  catchError,
-  expand,
-  finalize,
-  reduce
-} from 'rxjs/operators';
-
-import {
-  TaskMemberService,
-  TaskMember,
-  TaskStatus,
-  MemberWorkLogRow
-} from '../../services/task-member.service';
-
+import { catchError, expand, finalize,reduce } from 'rxjs/operators';
+import { TaskMemberService, TaskMember, TaskStatus, MemberWorkLogRow} from '../../services/task-member.service';
 import { AuthService } from '../../services/auth.service';
-
 import { TaskWorkLogService,TaskWorkLog,TaskWorkLogRequest } from '../../services/task-work-log.service';
 import { SidebarComponent } from '../sidebar/sidebar';
-
-import {
-  ElementRef,
-  QueryList,
-  ViewChildren,
-  inject
-} from '@angular/core';
+import { ElementRef,QueryList,ViewChildren,inject } from '@angular/core';
 
 import { ActivatedRoute } from '@angular/router';
 
