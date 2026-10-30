@@ -1,27 +1,13 @@
 
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  ChangeDetectorRef,
-  inject, 
-  DestroyRef
-} from '@angular/core';
-import { NavigationEnd,Router,RouterModule } from '@angular/router';
-import { forkJoin, timer,of,merge } from 'rxjs';
-import { catchError, finalize, filter, switchMap } from 'rxjs/operators';
-
-import {
-  DashboardManagerService
-} from '../../services/dashboard-manager.service';
-
+import { Component, OnInit, ChangeDetectorRef, inject, DestroyRef} from '@angular/core';
+import { Router,RouterModule } from '@angular/router';
+import { forkJoin,of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
+import { DashboardManagerService } from '../../services/dashboard-manager.service';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
-import { error } from 'console';
-
-import { NotificationBellComponent } from '../notification-bell/notification-bell';
 import { NotificationService } from '../../services/notification.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface MemberTaskSummary {
   memberId: number;

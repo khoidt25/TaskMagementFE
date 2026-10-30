@@ -21,10 +21,6 @@ export class ManagerScopeService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Lấy danh sách project mà Manager được phân quyền.
-   * API: GET /api/manager/projects
-   */
   getMyProjects(): Observable<number[]> {
     return this.http.get<number[]>(
       `${this.apiUrl}/projects`,
@@ -32,10 +28,6 @@ export class ManagerScopeService {
     );
   }
 
-  /**
-   * Lấy danh sách ID member thuộc phạm vi quản lý.
-   * API: GET /api/manager/members
-   */
   getMyMembers(): Observable<number[]> {
     return this.http.get<number[]>(
       `${this.apiUrl}/members`,
@@ -43,10 +35,6 @@ export class ManagerScopeService {
     );
   }
 
-  /**
-   * Lấy danh sách member kèm tên.
-   * API: GET /api/manager/membersOption?managerId=...
-   */
   getMembersOption(
     managerId: number
   ): Observable<MemberOptionResponse[]> {
@@ -58,10 +46,7 @@ export class ManagerScopeService {
       }
     );
   }
-
-  /**
-   * Lấy JWT từ localStorage để xác thực với Spring Security.
-   */
+  
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('accessToken');
 

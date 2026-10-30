@@ -55,7 +55,6 @@
         <button type="button" (click)="successMessage = ''">×</button>
       </div>
 
-      <!-- Statistics -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon blue-icon">♧</div>
@@ -95,7 +94,6 @@
       </div>
 
       <div class="work-grid">
-        <!-- Customer list -->
         <section class="panel customer-panel">
           <div class="panel-heading">
             <div>
@@ -198,7 +196,6 @@
             </div>
           </ng-template>
 
-          <!-- Pagination -->
           <div class="task-pagination"
                *ngIf="!loading && totalElements > 0">
             <div class="pagination-info">
@@ -235,8 +232,7 @@
             </div>
           </div>
         </section>
-
-        <!-- Customer details -->
+        
         <section class="panel detail-panel">
           <ng-container *ngIf="selectedCustomer as customer; else noCustomer">
             <div class="detail-heading">

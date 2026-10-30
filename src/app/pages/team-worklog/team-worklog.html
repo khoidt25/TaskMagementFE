@@ -1,9 +1,5 @@
-
 <div class="team-worklog">
-  <!-- Sidebar bên trái -->
   <app-sidebar></app-sidebar>
-
-  <!-- Nội dung Worklog bên phải -->
   <main class="main-content">
     <div class="page-header">
       <div>
@@ -12,7 +8,6 @@
       </div>
     </div>
 
-    <!-- Bộ lọc -->
     <div class="filter-card">
       <div class="filter-field">
         <label for="from">Từ ngày</label>
@@ -33,18 +28,15 @@
       </button>
     </div>
 
-    <!-- Tổng số bản ghi -->
     <div class="summary">
       Tổng số bản ghi:
       <strong>{{ totalElements }}</strong>
     </div>
 
-    <!-- Thông báo lỗi -->
     <div *ngIf="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
 
-    <!-- Bảng Worklog -->
     <div class="table-wrapper">
       <table>
         <thead>

@@ -1,6 +1,5 @@
 
 <div class="app-layout">
-  <!--MENU TRAI-->
   <app-sidebar></app-sidebar>
 
   <main class="main-content">
@@ -112,9 +111,6 @@
             <span class="count-badge">{{ totalTasks }}</span>
           </div>
 
-          <!-- Tìm kiếm -->
-        
-<!-- Bộ lọc công việc -->
 <div class="task-filters">
   <div class="filter-field keyword-field">
     <label for="taskKeyword">Từ khóa</label>
@@ -247,9 +243,6 @@
     </button>
   </div>
 </div>
-
-
-          <!-- Danh sách -->
           <div class="task-list" *ngIf="!loadingTasks; else taskLoading">
             <button
               type="button"
@@ -310,7 +303,6 @@
             <div class="loading-state">Đang tải công việc...</div>
           </ng-template>
 
-          <!-- Phân trang -->
            <br/>
           <div
             class="task-pagination"
@@ -354,8 +346,6 @@
             </div>
           </div>
         </section>
-
-        <!-- Chi tiết công việc -->
         <section class="panel members-panel">
           <ng-container *ngIf="selectedTask as task; else noTask">
             <div class="selected-task-header">
@@ -559,7 +549,6 @@
         </section>
       </div>
 
-      <!-- Form phân công -->
       <section class="panel assignment-panel" id="assignment-form">
         <div class="panel-heading form-panel-heading">
           <div>

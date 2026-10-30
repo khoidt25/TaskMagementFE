@@ -1,24 +1,10 @@
 import { CommonModule } from '@angular/common';
 import {ChangeDetectorRef,Component,OnDestroy,OnInit,inject} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  finalize,
-  forkJoin,
-  Subscription,
-  timeout
-} from 'rxjs';
-
+import { finalize, forkJoin, Subscription, timeout } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar';
-
-import {
-  UserAdminService,
-  UserResponse
-} from '../../services/user-admin.service';
-
-import {
-  ProjectService,
-  Project
-} from '../../services/project.service';
+import { UserAdminService, UserResponse } from '../../services/user-admin.service';
+import { ProjectService, Project } from '../../services/project.service';
 
 interface UserForm {
   username: string;
@@ -844,7 +830,7 @@ saveUser(): void {
     if (err?.status === 403) {
       return 'Bạn không có quyền thực hiện chức năng này.';
     }
-
+    
     const message =
       err?.error?.error ??
       err?.error?.message ??

@@ -33,8 +33,6 @@ button:disabled {
   background: #f5f7fb;
 }
 
-/* Sidebar */
-
 .sidebar {
   position: sticky;
   top: 0;
@@ -172,8 +170,6 @@ button:disabled {
   font-size: 11px;
 }
 
-/* Main layout */
-
 .main-content {
   flex: 1 1 auto;
   min-width: 0;
@@ -277,8 +273,6 @@ button:disabled {
   font-size: 13px;
 }
 
-/* Buttons */
-
 .primary-button,
 .secondary-button,
 .danger-button {
@@ -325,8 +319,6 @@ button:disabled {
   background: #fff1f1;
 }
 
-/* Notifications */
-
 .message {
   display: flex;
   align-items: center;
@@ -357,8 +349,6 @@ button:disabled {
   color: #18794e;
   background: #f0fbf5;
 }
-
-/* Statistics */
 
 .stats-grid {
   display: grid;
@@ -447,8 +437,6 @@ button:disabled {
   font-size: 10px;
 }
 
-/* Work area */
-
 .work-grid {
   display: grid;
   grid-template-columns: minmax(310px, 0.85fr) minmax(0, 1.5fr);
@@ -503,8 +491,6 @@ button:disabled {
   font-size: 11px;
   font-weight: 750;
 }
-
-/* Filters */
 
 .task-filters {
   display: grid;
@@ -563,8 +549,6 @@ button:disabled {
 .filter-actions button {
   min-height: 36px;
 }
-
-/* Task list */
 
 .task-list {
   display: flex;
@@ -653,8 +637,6 @@ button:disabled {
   text-align: right;
 }
 
-/* Status styles */
-
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -689,8 +671,6 @@ button:disabled {
   color: #b42318;
   background: #ffebeb;
 }
-
-/* Detail */
 
 .detail-heading {
   display: flex;
@@ -814,8 +794,6 @@ button:disabled {
   background: #22a06b;
 }
 
-/* Pagination */
-
 .task-pagination {
   display: flex;
   align-items: center;
@@ -881,8 +859,6 @@ button:disabled {
   text-align: center;
   white-space: nowrap;
 }
-
-/* Create and edit form */
 
 .task-form-panel {
   padding: 24px;
@@ -1019,8 +995,6 @@ button:disabled {
   gap: 10px;
 }
 
-/* Empty and loading states */
-
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1088,8 +1062,6 @@ button:disabled {
   }
 }
 
-/* Responsive: tablet */
-
 @media (max-width: 1250px) {
   .sidebar {
     width: 215px;
@@ -1120,8 +1092,6 @@ button:disabled {
     padding: 16px;
   }
 }
-
-/* Responsive: compact sidebar */
 
 @media (max-width: 950px) {
   .sidebar {
@@ -1165,8 +1135,6 @@ button:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
-/* Responsive: mobile */
 
 @media (max-width: 600px) {
   .sidebar {

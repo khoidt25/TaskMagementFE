@@ -1,26 +1,12 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Route, Router,RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { finalize, Subscription, timeout } from 'rxjs';
 import { Customer, CustomerService } from '../../services/customer.service';
-import { Priority,PriorityService } from '../../services/priority';
-
-import {
-  TaskAssignmentService,
-  TaskItem,
-  TaskFilter,
-  TaskRequest,
-  TaskProjectOption
-} from '../../services/task-assignment.service';
-
+import { Priority, PriorityService } from '../../services/priority';
+import { TaskAssignmentService, TaskItem, TaskFilter, TaskRequest, TaskProjectOption } from '../../services/task-assignment.service';
 import { AuthService } from '../../services/auth.service';
-import { error } from 'console';
 import { SidebarComponent } from '../sidebar/sidebar';
 
 @Component({
@@ -41,7 +27,7 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
   selectedTask: TaskItem | null = null;
   customers: Customer[] = [];
   priorities: Priority[] = [];
-  
+
   loadingTasks = false;
   loadingProjects = false;
   loadingPriories = false;
@@ -85,7 +71,7 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
     private priorityService: PriorityService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadTasks();
@@ -230,7 +216,7 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
                   : error?.status === 0
                     ? 'Không kết nối được backend.'
                     : error?.error?.message ||
-                      `Không tải được task (HTTP ${error?.status ?? 'unknown'}).`;
+                    `Không tải được task (HTTP ${error?.status ?? 'unknown'}).`;
 
           this.cdr.detectChanges();
         }
@@ -344,11 +330,11 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
   startCreateTask(): void {
 
     setTimeout(() => {
-    document.getElementById('assignment-form')
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      document.getElementById('assignment-form')
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
     });
     this.editingTaskId = null;
     this.form = this.createEmptyForm();
@@ -359,11 +345,11 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
 
   startEditTask(task: TaskItem): void {
     setTimeout(() => {
-    document.getElementById('assignment-form')
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      document.getElementById('assignment-form')
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
     });
     this.selectedTask = task;
     this.editingTaskId = task.taskId;
@@ -431,9 +417,6 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
       ...this.form,
       taskCode,
       taskName,
-
-      // createdBy = this.authService.getUsername();
-
       projectId: this.form.projectId ?? null,
       customerId: this.form.customerId ?? null,
       createdBy: this.authService.getUserId(),
@@ -487,13 +470,13 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
               ? 'Lưu task quá 15 giây. Hãy kiểm tra lại dữ liệu trước khi thử lại.'
               : error?.status === 400
                 ? error?.error?.message ||
-                  'Dữ liệu task không hợp lệ. Hãy kiểm tra các trường đã nhập.'
+                'Dữ liệu task không hợp lệ. Hãy kiểm tra các trường đã nhập.'
                 : error?.status === 401
                   ? 'Phiên đăng nhập đã hết hạn.'
                   : error?.status === 403
                     ? 'Bạn không có quyền thêm hoặc sửa task.'
                     : error?.error?.message ||
-                      `Không lưu được task (HTTP ${error?.status ?? 'unknown'}).`;
+                    `Không lưu được task (HTTP ${error?.status ?? 'unknown'}).`;
 
           this.cdr.detectChanges();
         }
@@ -565,7 +548,6 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
             this.selectedTask = null;
           }
 
-          // Nếu xóa task cuối cùng của trang, lùi về trang trước.
           if (this.tasks.length === 1 && this.taskPage > 0) {
             this.taskPage--;
           }
@@ -583,7 +565,7 @@ export class TaskManagementCompoenent implements OnInit, OnDestroy {
                 : error?.status === 404
                   ? 'Task không còn tồn tại hoặc đã được xóa.'
                   : error?.error?.message ||
-                    `Không xóa được task (HTTP ${error?.status ?? 'unknown'}).`;
+                  `Không xóa được task (HTTP ${error?.status ?? 'unknown'}).`;
 
           this.cdr.detectChanges();
         }

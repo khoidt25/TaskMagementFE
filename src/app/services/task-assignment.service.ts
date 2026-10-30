@@ -154,7 +154,6 @@ export class TaskAssignmentService {
     );
   }
 
-  //get toan bo task
   filterTasks(
     filters: TaskFilter
   ): Observable<TaskPageResponse<TaskItem>> {
@@ -199,7 +198,6 @@ export class TaskAssignmentService {
     );
   }
 
-  // Lấy chi tiết một task
 getTaskById(id: number): Observable<TaskItem> {
   return this.http.get<TaskItem>(
     `${this.baseUrl}/tasks/${id}`,
@@ -237,7 +235,6 @@ getProjects(): Observable<TaskProjectOption[]> {
   );
 }
 
-// get Task cua Manager dang nhap 
 filterManagerTask(
     filters: TaskFilter
   ): Observable<TaskPageResponse<TaskItem>> {

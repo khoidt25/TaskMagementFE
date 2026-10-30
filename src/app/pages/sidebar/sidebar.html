@@ -1,11 +1,8 @@
 <aside class="sidebar">
-  <!-- Logo -->
   <div class="sidebar-brand">
     <div class="brand-icon">T</div>
     <span>Team FT</span>
-     <!-- <app-notification-bell></app-notification-bell> -->
   </div>
- <!-- Chỉ MANAGER và MEMBER nhìn thấy chuông thông báo -->
 <div
   class="sidebar-notification-bell"
   *ngIf="!authService.hasRole('ROLE_ADMIN')">
@@ -13,7 +10,6 @@
   <app-notification-bell></app-notification-bell>
 </div>
   
-  <!-- Menu: chỉ ADMIN và MANAGER mới nhìn thấy -->
   <nav class="sidebar-nav"
        *ngIf="!authService.hasRole('ROLE_MEMBER')">
 
@@ -71,26 +67,6 @@
 
   </nav>
 
-  <!-- Thông báo: ADMIN, MANAGER và MEMBER đều nhìn thấy -->
-  <!-- <nav class="sidebar-nav sidebar-notification-nav">
-    <a
-      routerLink="/notifications"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="sidebar-link">
-
-      <span class="menu-icon">♧</span>
-      <span>Thông báo</span>
-
-      <span
-        class="notification-badge"
-        *ngIf="unreadCount > 0">
-        {{ unreadCount > 99 ? '99+' : unreadCount }}
-      </span>
-    </a>
-  </nav> -->
-
-  <!-- Thông tin người dùng -->
   <div class="sidebar-bottom">
     <div class="profile-avatar">
       {{ authService.getUsername()?.charAt(0)?.toUpperCase() || 'U' }}

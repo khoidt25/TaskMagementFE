@@ -1,7 +1,5 @@
 <div class="app-layout">
-  <!-- MENU TRAI -->
       <app-sidebar></app-sidebar>
-  <!-- Nội dung chính -->
   <main class="main-content">
     <header class="topbar">
       <div class="breadcrumb">
@@ -24,7 +22,6 @@
     </header>
 
     <section class="page-content">
-      <!-- Tiêu đề -->
       <div class="page-heading">
         <div>
           <div class="eyebrow">WORK MANAGEMENT</div>
@@ -41,7 +38,6 @@
         </button>
       </div>
 
-      <!-- Thông báo -->
       <div
         class="message error-message"
         *ngIf="errorMessage"
@@ -70,7 +66,6 @@
         </button>
       </div>
 
-      <!-- Thống kê -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon blue-icon">▤</div>
@@ -109,9 +104,8 @@
         </div>
       </div>
 
-      <!-- Khu vực danh sách và chi tiết -->
       <div class="work-grid">
-        <!-- Danh sách task -->
+    
         <section class="panel task-panel">
           <div class="panel-heading">
             <div>
@@ -121,7 +115,6 @@
             <span class="count-badge">{{ totalTasks }}</span>
           </div>
 
-          <!-- Bộ lọc -->
           <div class="task-filters">
             <div class="filter-field keyword-field">
               <label for="taskKeyword">Từ khóa</label>
@@ -214,7 +207,6 @@
             </div>
           </div>
 
-          <!-- Các task -->
           <div class="task-list" *ngIf="!loadingTasks; else taskLoading">
             <button
               type="button"
@@ -265,7 +257,6 @@
             </div>
           </ng-template>
 
-          <!-- Phân trang -->
           <div class="task-pagination" *ngIf="!loadingTasks && totalTasks > 0">
             <div class="pagination-info">
               Hiển thị
@@ -306,7 +297,6 @@
           </div>
         </section>
 
-        <!-- Chi tiết task -->
         <section class="panel detail-panel">
           <ng-container *ngIf="selectedTask as task; else noTaskSelected">
             <div class="detail-heading">
@@ -432,7 +422,6 @@
         </section>
       </div>
 
-      <!-- Form thêm / sửa task -->
       <section class="panel task-form-panel" *ngIf="showForm" id="assignment-form">
         <div class="panel-heading form-panel-heading">
           <div>
@@ -546,15 +535,6 @@
 
             <div class="form-field">
               <label for="priorityId">Mức độ ưu tiên</label>
-              <!-- <input
-                id="priorityId"
-                name="priorityId"
-                type="number"
-                min="1"
-                step="1"
-                [(ngModel)]="form.priorityId"
-                required /> -->
-
               <select
               id="priorityId"
               name="priorityId"
@@ -570,7 +550,6 @@
                 [ngValue]="priority.priorityId">
                     {{ priority.priorityName }}
               </option>
-
             </select>
 
               <small>Chọn mức độ ưu tiên theo dữ liệu back end</small>
@@ -579,14 +558,6 @@
 
             <div class="form-field">
               <label for="customerId">Khách hàng</label>
-              <!-- <input
-                id="customerId"
-                name="customerId"
-                type="number"
-                min="1"
-                [(ngModel)]="form.customerId"
-                placeholder="Để trống nếu chưa có khách hàng" /> -->
-             
             <select
               id="customerId"
               name="customerId"

@@ -1,24 +1,11 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Route, Router,RouterModule } from '@angular/router';
 import { finalize, Subscription, timeout } from 'rxjs';
 import { Customer, CustomerService } from '../../services/customer.service';
 import { Priority,PriorityService } from '../../services/priority';
-
-import {
-  TaskAssignmentService,
-  TaskItem,
-  TaskFilter,
-  TaskRequest,
-  TaskProjectOption
-} from '../../services/task-assignment.service';
-
+import { TaskAssignmentService, TaskItem, TaskFilter, TaskRequest, TaskProjectOption } from '../../services/task-assignment.service';
 import { AuthService } from '../../services/auth.service';
 import { error } from 'console';
 import { SidebarComponent } from '../sidebar/sidebar';

@@ -19,13 +19,6 @@
         </p>
       </div>
 
-      <!-- <div class="topbar-right">
-         <div class="sidebar-notification">
-          <app-notification-bell></app-notification-bell>
-      </div>
-   -->
-
-
    <div class="dashboard-actions">
         <div class="date-display">
           <span class="date-icon">▦</span>
@@ -57,7 +50,6 @@
 
     <ng-container *ngIf="!loading">
 
-      <!-- Welcome -->
       <section class="welcome-banner">
         <div class="welcome-content">
           <div class="welcome-label">
@@ -111,7 +103,6 @@
         </div>
       </section>
 
-      <!-- KPI cards -->
       <section class="section-block">
         <div class="section-heading">
           <div>
@@ -166,7 +157,6 @@
         </div>
       </section>
 
-      <!-- Status and completion -->
       <section class="dashboard-grid section-block">
         <article class="panel status-panel">
           <div class="panel-heading">
@@ -348,7 +338,6 @@
         </ng-template>
       </section>
       
-      <!-- User and customer statistics -->
       <section class="dashboard-grid section-block">
 
 <article class="panel assignment-summary-panel">
@@ -364,7 +353,6 @@
     <span class="panel-icon">♙</span>
   </div>
 
-  <!-- Lỗi tải dữ liệu -->
   <div
     class="assignment-error"
     *ngIf="projectMemberSummaryError">
@@ -379,7 +367,6 @@
 
   <ng-container *ngIf="!projectMemberSummaryError">
 
-    <!-- Không có dữ liệu -->
     <div
       class="empty-state compact-empty"
       *ngIf="projectMemberSummary.length === 0">
@@ -391,7 +378,6 @@
       </p>
     </div>
 
-    <!-- Danh sách project -->
     <div
       class="assignment-project"
       *ngFor="
@@ -399,7 +385,6 @@
         trackBy: trackByProjectId
       ">
 
-      <!-- Thông tin project -->
       <div class="assignment-project-header">
 
         <div class="assignment-project-title">
@@ -421,7 +406,6 @@
 
       </div>
 
-      <!-- Thành viên của project -->
       <div class="assignment-table-wrap">
 
         <table class="assignment-table">
@@ -493,7 +477,6 @@
 
       </div>
 
-      <!-- Tổng kết project -->
       <div class="assignment-project-footer">
         <span>
           {{ project.members?.length || 0 }} thành viên
@@ -555,7 +538,6 @@
         </article>
       </section>
 
-      <!-- Overdue tasks -->
       <section class="panel section-block">
         <div class="panel-heading">
           <div>

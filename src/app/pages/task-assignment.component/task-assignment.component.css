@@ -50,8 +50,6 @@ button {
   border-right: 1px solid #e8edf5;
 }
 
-/* Brand */
-
 .brand {
   display: flex;
   align-items: center;
@@ -86,8 +84,6 @@ button {
   color: #94a3b8;
   font-size: 11px;
 }
-
-/* Menu section */
 
 .nav-section {
   padding: 0 11px;
@@ -155,7 +151,6 @@ button {
   font-weight: 700;
 }
 
-/* Sidebar bottom */
 
 .sidebar-bottom {
   display: flex;
@@ -234,10 +229,6 @@ button {
   background: #fef2f2;
 }
 
-/* ========================================
-   TOPBAR
-======================================== */
-
 .topbar {
   display: flex;
   align-items: center;
@@ -299,10 +290,6 @@ button {
   font-weight: 750;
 }
 
-/* ========================================
-   PAGE CONTENT
-======================================== */
-
 .page-content {
   max-width: 1800px;
   margin: 0 auto;
@@ -338,8 +325,6 @@ button {
   color: #8590a3;
   font-size: 13px;
 }
-
-/* Buttons */
 
 .primary-button,
 .secondary-button {
@@ -381,10 +366,6 @@ button {
   background: #f5f7fb;
 }
 
-/* ========================================
-   MESSAGES
-======================================== */
-
 .message {
   display: flex;
   align-items: center;
@@ -414,10 +395,6 @@ button {
   color: #18794e;
   background: #f0fbf5;
 }
-
-/* ========================================
-   STATISTICS
-======================================== */
 
 .stats-grid {
   display: grid;
@@ -506,10 +483,6 @@ button {
   font-size: 10px;
 }
 
-/* ========================================
-   WORK AREA
-======================================== */
-
 .work-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.78fr) minmax(0, 2fr);
@@ -567,10 +540,6 @@ button {
   font-weight: 750;
 }
 
-/* ========================================
-   SEARCH
-======================================== */
-
 .search-box {
   display: flex;
   align-items: center;
@@ -606,10 +575,6 @@ button {
 .search-box input::placeholder {
   color: #a1aabc;
 }
-
-/* ========================================
-   TASK LIST
-======================================== */
 
 .task-list {
   display: flex;
@@ -720,11 +685,6 @@ button {
   background: #f1f5f9;
 }
 
-
-/* ========================================
-   TASK STATUS
-======================================== */
-
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -759,10 +719,6 @@ button {
   color: #b42318;
   background: #ffebeb;
 }
-
-/* ========================================
-   SELECTED TASK
-======================================== */
 
 .selected-task-header {
   display: flex;
@@ -818,10 +774,6 @@ button {
   font-weight: 650;
 }
 
-/* ========================================
-   MEMBERS
-======================================== */
-
 .members-heading {
   display: flex;
   align-items: center;
@@ -832,8 +784,6 @@ button {
 .member-search {
   margin-top: 14px;
 }
-
-/* Table */
 
 .table-wrapper {
   width: 100%;
@@ -881,8 +831,6 @@ tbody tr:hover {
 tbody tr:last-child td {
   border-bottom: 0;
 }
-
-/* Member identity */
 
 .member-cell {
   display: flex;
@@ -943,8 +891,6 @@ tbody tr:last-child td {
   font-size: 9px;
 }
 
-/* Progress */
-
 .progress-cell {
   width: 90px;
 }
@@ -974,8 +920,6 @@ tbody tr:last-child td {
 .deadline-cell {
   white-space: nowrap;
 }
-
-/* Row actions */
 
 .row-actions {
   display: flex;
@@ -1009,10 +953,6 @@ tbody tr:last-child td {
 .delete-action:hover {
   background: #fff0f0;
 }
-
-/* ========================================
-   ASSIGNMENT FORM
-======================================== */
 
 .assignment-panel {
   padding: 24px;
@@ -1157,10 +1097,6 @@ tbody tr:last-child td {
   gap: 10px;
 }
 
-/* ========================================
-   EMPTY & LOADING STATES
-======================================== */
-
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1270,10 +1206,8 @@ tbody tr:last-child td {
   display: flex;
   flex-direction: row;
   align-items: center;
-  /* justify-content: center; */
   gap: 10px;
   white-space: nowrap;
-  /* margin-top: 10px; */
 }
 
 .pagination-controls button {
@@ -1300,10 +1234,6 @@ tbody tr:last-child td {
     justify-content: space-between;
   }
 }
-
-/* ========================================
-   RESPONSIVE - TABLET
-======================================== */
 
 @media (max-width: 1250px) {
   .sidebar {
@@ -1335,10 +1265,6 @@ tbody tr:last-child td {
     padding: 16px;
   }
 }
-
-/* ========================================
-   RESPONSIVE - COMPACT SIDEBAR
-======================================== */
 
 @media (max-width: 950px) {
   .sidebar {
@@ -1451,11 +1377,6 @@ tbody tr:last-child td {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-
-
-/* ========================================
-   RESPONSIVE - MOBILE
-======================================== */
 
 @media (max-width: 600px) {
   .sidebar {

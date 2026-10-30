@@ -1,22 +1,9 @@
-
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  Subscription,
-  finalize,
-  timeout
-} from 'rxjs';
-
+import { Subscription, finalize, timeout } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar';
-
-import {
-  Project,
-  ProjectPage,
-  ProjectRequest,
-  ProjectService,
-  ProjectStatus
-} from '../../services/project.service';
+import { Project, ProjectPage, ProjectRequest, ProjectService, ProjectStatus } from '../../services/project.service';
 
 @Component({
   selector: 'app-projects',
@@ -25,6 +12,7 @@ import {
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
 })
+
 export class ProjectsComponent implements OnInit, OnDestroy {
   private readonly projectService = inject(ProjectService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -256,7 +244,7 @@ export class ProjectsComponent implements OnInit, OnDestroy {
   startCreateProject(): void {
     setTimeout(() => {
       document.getElementById('assignment-form')
-       ?.scrollIntoView({
+        ?.scrollIntoView({
           behavior: 'smooth',
           block: 'start'
         });
@@ -273,12 +261,12 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.successMessage = '';
   }
-  
+
   startEditProject(project: Project): void {
 
-       setTimeout(() => {
+    setTimeout(() => {
       document.getElementById('assignment-form')
-       ?.scrollIntoView({
+        ?.scrollIntoView({
           behavior: 'smooth',
           block: 'start'
         });

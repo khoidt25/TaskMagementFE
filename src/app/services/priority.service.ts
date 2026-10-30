@@ -23,22 +23,18 @@ export class PriorityService {
 
   constructor(private http: HttpClient) {}
 
-  // Lấy danh sách mức độ ưu tiên
   getAll(): Observable<Priority[]> {
     return this.http.get<Priority[]>(this.apiUrl);
   }
 
-  // Lấy mức độ ưu tiên theo ID
   getById(id: number): Observable<Priority> {
     return this.http.get<Priority>(`${this.apiUrl}/${id}`);
   }
 
-  // Thêm mức độ ưu tiên
   create(priority: Partial<Priority>): Observable<Priority> {
     return this.http.post<Priority>(this.apiUrl, priority);
   }
 
-  // Cập nhật mức độ ưu tiên
   update(
     id: number,
     priority: Partial<Priority>
@@ -48,8 +44,7 @@ export class PriorityService {
       priority
     );
   }
-
-  // Xóa mức độ ưu tiên
+   
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

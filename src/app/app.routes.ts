@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-
 import { LoginComponent } from './pages/login/login';
 import { TaskAssignmentComponent } from './pages/task-assignment.component/task-assignment.component';
 import { TaskManagementCompoenent } from './pages/task-management.component/task-management.component';

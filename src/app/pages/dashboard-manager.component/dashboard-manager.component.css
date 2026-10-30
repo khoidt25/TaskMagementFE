@@ -27,8 +27,6 @@
   padding: 28px 32px 18px;
 }
 
-/* Header */
-
 .topbar {
   display: flex;
   align-items: flex-start;
@@ -152,8 +150,6 @@
   animation: spin 0.9s linear infinite;
 }
 
-/* Error and loading */
-
 .error-banner {
   display: flex;
   align-items: center;
@@ -215,8 +211,6 @@
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-
-/* Welcome banner */
 
 .welcome-banner {
   position: relative;
@@ -429,8 +423,6 @@
   font-size: 10px;
 }
 
-/* Section headings */
-
 .section-block {
   margin-top: 29px;
 }
@@ -471,8 +463,6 @@
   letter-spacing: 0.8px;
   white-space: nowrap;
 }
-
-/* KPI cards */
 
 .stats-grid {
   display: grid;
@@ -588,8 +578,6 @@
   line-height: 1.6;
 }
 
-/* Main dashboard panels */
-
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -638,8 +626,6 @@
   color: #4054d1;
   text-decoration: underline;
 }
-
-/* Task status distribution */
 
 .status-list {
   display: flex;
@@ -756,8 +742,6 @@
   color: #5f71e6;
   font-weight: 800;
 }
-
-/* Completion panel */
 
 .completion-content {
   display: flex;
@@ -881,8 +865,6 @@
   transition: width 0.4s ease;
 }
 
-/* Project table */
-
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -987,8 +969,6 @@
   text-align: right;
 }
 
-/* User and customer lists */
-
 .simple-list {
   display: flex;
   flex-direction: column;
@@ -1076,8 +1056,6 @@
   color: #939db0;
   font-size: 10px;
 }
-
-/* Overdue tasks */
 
 .overdue-list {
   display: flex;
@@ -1199,8 +1177,6 @@
   background: #e8ebff;
 }
 
-/* Empty states */
-
 .empty-state {
   display: flex;
   align-items: center;
@@ -1254,8 +1230,6 @@
   font-weight: 800;
 }
 
-/* Footer */
-
 .page-footer {
   display: flex;
   align-items: center;
@@ -1283,9 +1257,6 @@ app-sidebar {
   color: #dc4c4c;
   font-weight: 700;
 }
-
-
-/* ===== Project / Member task assignment summary ===== */
 
 .assignment-summary-panel {
   overflow: hidden;
@@ -1775,9 +1746,6 @@ app-sidebar {
     padding: 10px;
   }
 }
-
-
-/* Responsive */
 
 @media (max-width: 1250px) {
   .main-content {

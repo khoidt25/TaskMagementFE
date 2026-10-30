@@ -1,10 +1,7 @@
 
 
 <div class="member-page">
-    <!-- SIDEBAR BÊN TRÁI -->
   <app-sidebar></app-sidebar>
-
-  <!-- HEADER -->
    <main class="member-content">
   <header class="page-header">
     <div>
@@ -23,7 +20,6 @@
     </button>
   </header>
 
-  <!-- ALERTS -->
   <div class="alert alert-error" *ngIf="errorMessage">
     {{ errorMessage }}
   </div>
@@ -32,7 +28,6 @@
     {{ successMessage }}
   </div>
 
-  <!-- STATISTICS -->
   <section class="stats-grid">
 
     <article class="stat-card">
@@ -73,7 +68,6 @@
 
   </section>
 
-  <!-- DAILY WORK LOG -->
   <section class="panel worklog-panel">
 
     <div class="panel-heading">
@@ -87,7 +81,6 @@
       <span class="panel-icon">◷</span>
     </div>
 
-    <!-- WORK LOG TOOLBAR -->
     <div class="worklog-toolbar">
 
       <div class="date-field">
@@ -111,12 +104,10 @@
 
     </div>
 
-    <!-- LOADING -->
     <div class="loading-state" *ngIf="workLogLoading">
       Đang tải kế hoạch làm việc...
     </div>
 
-    <!-- WORK LOG TABLE -->
     <div
       class="table-wrapper"
       *ngIf="!workLogLoading && workLogRows.length > 0">
@@ -207,7 +198,6 @@
       </table>
     </div>
 
-    <!-- WORK LOG EMPTY STATE -->
     <div
       class="empty-state"
       *ngIf="!workLogLoading && workLogRows.length === 0">
@@ -219,7 +209,6 @@
       </p>
     </div>
 
-    <!-- WORK LOG PAGINATION -->
     <div
       class="pagination"
       *ngIf="!workLogLoading && workLogRows.length > 0">
@@ -320,12 +309,10 @@
 
     </div>
 
-    <!-- TASK LOADING -->
     <div class="loading-state" *ngIf="loading">
       Đang tải danh sách công việc...
     </div>
 
-    <!-- TASK EMPTY STATE -->
     <div
       class="empty-state"
       *ngIf="!loading && filteredTasks.length === 0">
@@ -335,7 +322,6 @@
       <p>Thử thay đổi từ khóa hoặc bộ lọc trạng thái.</p>
     </div>
 
-    <!-- TASK TABLE -->
     <div
       class="table-wrapper"
       *ngIf="!loading && filteredTasks.length > 0">

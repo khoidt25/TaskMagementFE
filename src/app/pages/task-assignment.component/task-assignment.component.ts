@@ -1,15 +1,13 @@
-
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef, ElementRef} from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, finalize, timeout } from 'rxjs';
-
 import { TaskAssignmentService } from '../../services/task-assignment.service';
 import { ProjectService } from '../../services/project.service';
 import { CustomerService } from '../../services/customer.service';
 import { TaskItem } from '../../services/task-assignment.service';
-import { TaskRole,TaskRoleService } from '../../services/task-role.service';
+import { TaskRole, TaskRoleService } from '../../services/task-role.service';
 import { AuthService } from '../../services/auth.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ManagerScopeService, MemberOptionResponse } from '../../services/managerScope.service';
@@ -74,13 +72,13 @@ export class TaskAssignmentComponent implements OnInit {
   users: UserItem[] = [];
 
   members: MemberItem[] = [];
-  
+
   taskRoles: TaskRole[] = [];
 
   membersOption: MemberOptionResponse[] = [];
   selectedMemberId: number | null = null;
 
-  
+
   projects: Project[] = [];
   customers: Customer[] = [];
 
@@ -105,7 +103,7 @@ export class TaskAssignmentComponent implements OnInit {
 
   saving = false;
 
-  
+
 
   editingMemberId: number | null = null;
 
@@ -130,7 +128,7 @@ export class TaskAssignmentComponent implements OnInit {
   filterDeadlineFrom = '';
   filterDeadlineTo = '';
 
-sortOption = 'taskId,desc';
+  sortOption = 'taskId,desc';
 
   form = this.emptyForm();
 
@@ -139,11 +137,11 @@ sortOption = 'taskId,desc';
     private projectService: ProjectService,
     private customerService: CustomerService,
     private taskRoleService: TaskRoleService,
-    private authService : AuthService,
+    private authService: AuthService,
     private managerScopeService: ManagerScopeService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadTasks();
@@ -180,45 +178,45 @@ sortOption = 'taskId,desc';
   }
 
   loadProjectOptions(): void {
-  this.projectService.getProjectOptions().subscribe({
-    next: (data) => {
-      this.projects = data;
-    },
-    error: (error) => {
-      console.error('Lỗi tải danh sách Project:', error);
-    }
+    this.projectService.getProjectOptions().subscribe({
+      next: (data) => {
+        this.projects = data;
+      },
+      error: (error) => {
+        console.error('Lỗi tải danh sách Project:', error);
+      }
     });
   }
 
   loadMembersOption(): void {
-  const managerId = this.authService.getUserId();
+    const managerId = this.authService.getUserId();
 
-  if (managerId == null || Number(managerId) <= 0) {
-    this.membersOption = [];
-    console.error('Không xác định được Manager ID.');
-    return;
+    if (managerId == null || Number(managerId) <= 0) {
+      this.membersOption = [];
+      console.error('Không xác định được Manager ID.');
+      return;
+    }
+
+    this.loadingMembersOption = true;
+
+    this.managerScopeService
+      .getMembersOption(Number(managerId))
+      .pipe(
+        finalize(() => {
+          this.loadingMembersOption = false;
+        })
+      )
+      .subscribe({
+        next: (data) => {
+          this.membersOption = Array.isArray(data) ? data : [];
+          console.log('Member của Manager:', this.membersOption);
+        },
+        error: (err) => {
+          this.membersOption = [];
+          console.error('Lỗi tải member của Manager:', err);
+        }
+      });
   }
-
-  this.loadingMembersOption = true;
-
-  this.managerScopeService
-    .getMembersOption(Number(managerId))
-    .pipe(
-      finalize(() => {
-        this.loadingMembersOption = false;
-      })
-    )
-    .subscribe({
-      next: (data) => {
-        this.membersOption = Array.isArray(data) ? data : [];
-        console.log('Member của Manager:', this.membersOption);
-      },
-      error: (err) => {
-        this.membersOption = [];
-        console.error('Lỗi tải member của Manager:', err);
-      }
-    });
-}
 
   loadCustomers(): void {
     this.customerService.findAll().subscribe({
@@ -301,117 +299,117 @@ sortOption = 'taskId,desc';
     this.loadTasks();
   }
 
-  
 
 
-loadTasks(): void {
-  const requestId = ++this.taskRequestId;
 
-  this.taskRequest?.unsubscribe();
+  loadTasks(): void {
+    const requestId = ++this.taskRequestId;
 
-  this.loadingTasks = true;
-  this.errorMessage = '';
-  this.cdr.detectChanges();
+    this.taskRequest?.unsubscribe();
 
-  const filters = {
-    page: this.taskPage,
-    size: this.taskSize,
-    keyword: this.searchTask.trim(),
-    status: this.filterStatus || '',
-    projectId: this.filterProjectId,
-    customerId: this.filterCustomerId,
-    userId: this.filterUserId,
-    deadlineFrom: this.filterDeadlineFrom || '',
-    deadlineTo: this.filterDeadlineTo || '',
-    sort: this.sortOption
-  };
+    this.loadingTasks = true;
+    this.errorMessage = '';
+    this.cdr.detectChanges();
 
-  this.taskRequest = this.taskService
-    .filterManagerTask(filters)
-    .pipe(
-      timeout({ first: 15000 }),
-      finalize(() => {
-      
-        if (requestId === this.taskRequestId) {
-          this.loadingTasks = false;
+    const filters = {
+      page: this.taskPage,
+      size: this.taskSize,
+      keyword: this.searchTask.trim(),
+      status: this.filterStatus || '',
+      projectId: this.filterProjectId,
+      customerId: this.filterCustomerId,
+      userId: this.filterUserId,
+      deadlineFrom: this.filterDeadlineFrom || '',
+      deadlineTo: this.filterDeadlineTo || '',
+      sort: this.sortOption
+    };
+
+    this.taskRequest = this.taskService
+      .filterManagerTask(filters)
+      .pipe(
+        timeout({ first: 15000 }),
+        finalize(() => {
+
+          if (requestId === this.taskRequestId) {
+            this.loadingTasks = false;
+            this.cdr.detectChanges();
+          }
+        })
+      )
+      .subscribe({
+        next: response => {
+          if (requestId !== this.taskRequestId) {
+            return;
+          }
+
+          this.tasks = response?.content ?? [];
+          this.totalTasks = response?.totalElements ?? 0;
+          this.totalPages = response?.totalPages ?? 0;
+
+          const selectedExists = this.tasks.some(
+            task => task.taskId === this.selectedTaskId
+          );
+
+          if (!selectedExists) {
+            this.selectedTaskId = this.tasks[0]?.taskId ?? null;
+            this.cancelEdit();
+          }
+
+          if (this.selectedTaskId !== null) {
+            this.loadMembers(this.selectedTaskId);
+          } else {
+            ++this.memberRequestId;
+            this.memberRequest?.unsubscribe();
+            this.memberRequest = undefined;
+            this.members = [];
+            this.loadingMembers = false;
+          }
+
           this.cdr.detectChanges();
-        }
-      })
-    )
-    .subscribe({
-      next: response => {
-        if (requestId !== this.taskRequestId) {
-          return;
-        }
+        },
+        error: err => {
+          if (requestId !== this.taskRequestId) {
+            return;
+          }
 
-        this.tasks = response?.content ?? [];
-        this.totalTasks = response?.totalElements ?? 0;
-        this.totalPages = response?.totalPages ?? 0;
+          console.error('Lỗi API lọc công việc:', err);
 
-        const selectedExists = this.tasks.some(
-          task => task.taskId === this.selectedTaskId
-        );
-
-        if (!selectedExists) {
-          this.selectedTaskId = this.tasks[0]?.taskId ?? null;
-          this.cancelEdit();
-        }
-
-        if (this.selectedTaskId !== null) {
-          this.loadMembers(this.selectedTaskId);
-        } else {
-          ++this.memberRequestId;
-          this.memberRequest?.unsubscribe();
-          this.memberRequest = undefined;
+          this.tasks = [];
           this.members = [];
-          this.loadingMembers = false;
-        }
+          this.selectedTaskId = null;
+          this.totalTasks = 0;
+          this.totalPages = 0;
 
-        this.cdr.detectChanges();
-      },
-      error: err => {
-        if (requestId !== this.taskRequestId) {
-          return;
-        }
-
-        console.error('Lỗi API lọc công việc:', err);
-
-        this.tasks = [];
-        this.members = [];
-        this.selectedTaskId = null;
-        this.totalTasks = 0;
-        this.totalPages = 0;
-
-        this.errorMessage =
-          err?.name === 'TimeoutError'
-            ? 'API tìm kiếm quá 15 giây. Hãy thử lại.'
-            : err?.status === 0
-              ? 'Không kết nối được backend. Kiểm tra Spring Boot và mạng.'
-              : err?.error?.message ||
+          this.errorMessage =
+            err?.name === 'TimeoutError'
+              ? 'API tìm kiếm quá 15 giây. Hãy thử lại.'
+              : err?.status === 0
+                ? 'Không kết nối được backend. Kiểm tra Spring Boot và mạng.'
+                : err?.error?.message ||
                 `Không tải được công việc (HTTP ${err?.status ?? 'unknown'}).`;
 
-        this.cdr.detectChanges();
-      }
-    });
-}
+          this.cdr.detectChanges();
+        }
+      });
+  }
 
-applyFilters(): void {
-  this.taskPage = 0;
-  this.loadTasks();
-}
+  applyFilters(): void {
+    this.taskPage = 0;
+    this.loadTasks();
+  }
 
-resetFilters(): void {
-  this.searchTask = '';
-  this.filterStatus = '';
-  this.filterProjectId = null;
-  this.filterCustomerId = null;
-  this.filterUserId = null;
-  this.filterDeadlineFrom = '';
-  this.filterDeadlineTo = '';
-  this.sortOption = 'taskId,desc';
-  this.taskPage = 0;
-  this.loadTasks();
-}
+  resetFilters(): void {
+    this.searchTask = '';
+    this.filterStatus = '';
+    this.filterProjectId = null;
+    this.filterCustomerId = null;
+    this.filterUserId = null;
+    this.filterDeadlineFrom = '';
+    this.filterDeadlineTo = '';
+    this.sortOption = 'taskId,desc';
+    this.taskPage = 0;
+    this.loadTasks();
+  }
 
 
   goToPage(page: number): void {
@@ -427,48 +425,48 @@ resetFilters(): void {
     this.taskPage = page;
     this.loadTasks();
   }
-previousPage(): void {
-  if (this.loadingTasks || this.taskPage <= 0) {
-    return;
+  previousPage(): void {
+    if (this.loadingTasks || this.taskPage <= 0) {
+      return;
+    }
+
+    this.taskPage--;
+    this.loadTasks();
   }
 
-  this.taskPage--;
-  this.loadTasks();
-}
+  nextPage(): void {
+    if (this.loadingTasks || this.taskPage >= this.totalPages - 1) {
+      return;
+    }
 
-nextPage(): void {
-  if (this.loadingTasks || this.taskPage >= this.totalPages - 1) {
-    return;
+    this.taskPage++;
+    this.loadTasks();
   }
 
-  this.taskPage++;
-  this.loadTasks();
-}
+  changePageSize(size: number): void {
+    if (this.loadingTasks || this.taskSize === Number(size)) {
+      return;
+    }
 
-changePageSize(size: number): void {
-  if (this.loadingTasks || this.taskSize === Number(size)) {
-    return;
+    this.taskSize = Number(size);
+    this.taskPage = 0;
+    this.loadTasks();
   }
 
-  this.taskSize = Number(size);
-  this.taskPage = 0;
-  this.loadTasks();
-}
+  selectTask(task: TaskItem): void {
+    if (this.selectedTaskId === task.taskId) {
+      return;
+    }
 
-selectTask(task: TaskItem): void {
-  if (this.selectedTaskId === task.taskId) {
-    return;
+    this.selectedTaskId = task.taskId;
+    this.members = [];
+    this.searchMember = '';
+
+    this.cancelEdit();
+    this.clearMessages();
+
+    this.loadMembers(task.taskId);
   }
-
-  this.selectedTaskId = task.taskId;
-  this.members = [];
-  this.searchMember = '';
-
-  this.cancelEdit();
-  this.clearMessages();
-
-  this.loadMembers(task.taskId);
-}
 
   loadUsers(): void {
     this.loadingUsers = true;
@@ -489,171 +487,171 @@ selectTask(task: TaskItem): void {
   }
 
   loadTaskRoles(): void {
-  this.taskRoleService.getActiveTaskRoles(0, 100).subscribe({
-    next: (response) => {
-      this.taskRoles = response.content;
-    },
-    error: () => {
-      this.errorMessage ='Không tải được danh sách vai trò.';
-    }
-  });
-}
-
-
-loadMembers(taskId: number): void {
-  const requestId = ++this.memberRequestId;
-
-  this.memberRequest?.unsubscribe();
-
-  this.loadingMembers = true;
-  this.members = [];
-  this.cdr.detectChanges();
-
-  this.memberRequest = this.taskService
-    .getMembers(taskId)
-    .pipe(
-      timeout({ first: 15000 }),
-      finalize(() => {
-        if (requestId === this.memberRequestId) {
-          this.loadingMembers = false;
-          this.cdr.detectChanges();
-        }
-      })
-    )
-    .subscribe({
-      next: response => {
-        if (
-          requestId !== this.memberRequestId ||
-          this.selectedTaskId !== taskId
-        ) {
-          return;
-        }
-
-        this.members = Array.isArray(response)
-          ? response
-          : response?.content ?? [];
-
-        this.cdr.detectChanges();
+    this.taskRoleService.getActiveTaskRoles(0, 100).subscribe({
+      next: (response) => {
+        this.taskRoles = response.content;
       },
-      error: err => {
-        if (
-          requestId !== this.memberRequestId ||
-          this.selectedTaskId !== taskId
-        ) {
-          return;
-        }
+      error: () => {
+        this.errorMessage = 'Không tải được danh sách vai trò.';
+      }
+    });
+  }
 
-        this.members = [];
 
-        this.errorMessage =
-          err?.name === 'TimeoutError'
-            ? 'API tải thành viên quá 15 giây.'
-            : err?.error?.message ||
+  loadMembers(taskId: number): void {
+    const requestId = ++this.memberRequestId;
+
+    this.memberRequest?.unsubscribe();
+
+    this.loadingMembers = true;
+    this.members = [];
+    this.cdr.detectChanges();
+
+    this.memberRequest = this.taskService
+      .getMembers(taskId)
+      .pipe(
+        timeout({ first: 15000 }),
+        finalize(() => {
+          if (requestId === this.memberRequestId) {
+            this.loadingMembers = false;
+            this.cdr.detectChanges();
+          }
+        })
+      )
+      .subscribe({
+        next: response => {
+          if (
+            requestId !== this.memberRequestId ||
+            this.selectedTaskId !== taskId
+          ) {
+            return;
+          }
+
+          this.members = Array.isArray(response)
+            ? response
+            : response?.content ?? [];
+
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          if (
+            requestId !== this.memberRequestId ||
+            this.selectedTaskId !== taskId
+          ) {
+            return;
+          }
+
+          this.members = [];
+
+          this.errorMessage =
+            err?.name === 'TimeoutError'
+              ? 'API tải thành viên quá 15 giây.'
+              : err?.error?.message ||
               'Không tải được danh sách thành viên.';
 
-        this.cdr.detectChanges();
-      }
-    });
-}
+          this.cdr.detectChanges();
+        }
+      });
+  }
 
   submitAssignment(): void {
-  if (this.saving) {
-    return;
-  }
+    if (this.saving) {
+      return;
+    }
 
-  if (this.selectedTaskId == null) {
-    this.errorMessage = 'Vui lòng chọn một công việc.';
-    return;
-  }
+    if (this.selectedTaskId == null) {
+      this.errorMessage = 'Vui lòng chọn một công việc.';
+      return;
+    }
 
-  if (this.form.userId == null || Number(this.form.userId) <= 0) {
-    this.errorMessage = 'Vui lòng chọn thành viên cần phân công.';
-    return;
-  }
+    if (this.form.userId == null || Number(this.form.userId) <= 0) {
+      this.errorMessage = 'Vui lòng chọn thành viên cần phân công.';
+      return;
+    }
 
-  if (this.form.taskRoleId == null || Number(this.form.taskRoleId) <= 0) {
-    this.errorMessage = 'Vui lòng chọn vai trò trong công việc.';
-    return;
-  }
+    if (this.form.taskRoleId == null || Number(this.form.taskRoleId) <= 0) {
+      this.errorMessage = 'Vui lòng chọn vai trò trong công việc.';
+      return;
+    }
 
-  if (!this.form.assignedWork?.trim()) {
-    this.errorMessage = 'Vui lòng nhập nội dung công việc được giao.';
-    return;
-  }
+    if (!this.form.assignedWork?.trim()) {
+      this.errorMessage = 'Vui lòng nhập nội dung công việc được giao.';
+      return;
+    }
 
-  const progress = Number(this.form.progress);
+    const progress = Number(this.form.progress);
 
-  if (!Number.isFinite(progress) || progress < 0 || progress > 100) {
-    this.errorMessage = 'Tiến độ phải nằm trong khoảng 0–100%.';
-    return;
-  }
+    if (!Number.isFinite(progress) || progress < 0 || progress > 100) {
+      this.errorMessage = 'Tiến độ phải nằm trong khoảng 0–100%.';
+      return;
+    }
 
-  const taskId = this.selectedTaskId;
-  const editingId = this.editingMemberId;
+    const taskId = this.selectedTaskId;
+    const editingId = this.editingMemberId;
 
-  const body = {
-    taskId,
-    userId: Number(this.form.userId),
-    taskRoleId: Number(this.form.taskRoleId),
-    assignedWork: this.form.assignedWork.trim(),
-    status: this.form.status,
-    progress,
-    deadline: this.form.deadline || null,
-    note: this.form.note?.trim() || null
-  };
+    const body = {
+      taskId,
+      userId: Number(this.form.userId),
+      taskRoleId: Number(this.form.taskRoleId),
+      assignedWork: this.form.assignedWork.trim(),
+      status: this.form.status,
+      progress,
+      deadline: this.form.deadline || null,
+      note: this.form.note?.trim() || null
+    };
 
-  this.saving = true;
-  this.clearMessages();
+    this.saving = true;
+    this.clearMessages();
 
-  const request = editingId !== null
-    ? this.taskService.updateMember(taskId, editingId, body)
-    : this.taskService.assignMember(taskId, body);
+    const request = editingId !== null
+      ? this.taskService.updateMember(taskId, editingId, body)
+      : this.taskService.assignMember(taskId, body);
 
-  request
-    .pipe(
-      timeout({ first: 15000 }),
-      finalize(() => {
-        this.saving = false;
-      })
-    )
-    .subscribe({
-      next: () => {
-        this.cancelEdit();
+    request
+      .pipe(
+        timeout({ first: 15000 }),
+        finalize(() => {
+          this.saving = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.cancelEdit();
 
-this.errorMessage = '';
-this.successMessage = editingId !== null
-? 'Cập nhật phân công thành công.'
-: 'Phân công thành viên thành công.';
+          this.errorMessage = '';
+          this.successMessage = editingId !== null
+            ? 'Cập nhật phân công thành công.'
+            : 'Phân công thành viên thành công.';
 
-this.loadMembers(taskId);
-      },
-      error: err => {
-        if (err?.name === 'TimeoutError') {
-          this.errorMessage =
-            'API phản hồi quá lâu. Vui lòng kiểm tra backend và thử lại.';
-        } else {
-          const message =
-            err?.error?.message ||
-            err?.error?.error ||
-            '';
-
-          if (
-            err?.status === 409 ||
-            message.toLowerCase().includes('đã được phân công')
-          ) {
+          this.loadMembers(taskId);
+        },
+        error: err => {
+          if (err?.name === 'TimeoutError') {
             this.errorMessage =
-              'Thành viên này đã được phân công vào công việc. Vui lòng chọn người khác.';
-          } else if (err?.status === 0) {
-            this.errorMessage =
-              'Không kết nối được backend. Vui lòng kiểm tra server.';
+              'API phản hồi quá lâu. Vui lòng kiểm tra backend và thử lại.';
           } else {
-            this.errorMessage =
-              message || 'Không thể lưu phân công. Vui lòng thử lại.';
+            const message =
+              err?.error?.message ||
+              err?.error?.error ||
+              '';
+
+            if (
+              err?.status === 409 ||
+              message.toLowerCase().includes('đã được phân công')
+            ) {
+              this.errorMessage =
+                'Thành viên này đã được phân công vào công việc. Vui lòng chọn người khác.';
+            } else if (err?.status === 0) {
+              this.errorMessage =
+                'Không kết nối được backend. Vui lòng kiểm tra server.';
+            } else {
+              this.errorMessage =
+                message || 'Không thể lưu phân công. Vui lòng thử lại.';
+            }
           }
         }
-      }
-    });
-}
+      });
+  }
 
   editMember(member: MemberItem): void {
     this.editingMemberId = member.taskMemberId;
@@ -668,11 +666,11 @@ this.loadMembers(taskId);
       note: member.note || ''
     };
     setTimeout(() => {
-    document.getElementById('assignment-form')
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      document.getElementById('assignment-form')
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
     });
     this.clearMessages();
   }
@@ -713,24 +711,20 @@ this.loadMembers(taskId);
   }
 
   cancelEdit(): void {
-    // this.editingMemberId = null;
-    // this.form = this.emptyForm();
-
     this.editingMemberId = null;
     this.form = this.emptyForm();
-    //this.clearMessages();
   }
 
   startNewAssignment(): void {
     this.cancelEdit();
     setTimeout(() => {
-    document.getElementById('assignment-form')
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      document.getElementById('assignment-form')
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
     });
-  } 
+  }
 
   refresh(): void {
     this.clearMessages();
@@ -769,19 +763,19 @@ this.loadMembers(taskId);
   }
 
   priorityClass(priorityCode: string | null | undefined): string {
-  switch ((priorityCode || '').toUpperCase()) {
-    case 'LOW':
-      return 'priority-low';
-    case 'MEDIUM':
-      return 'priority-medium';
-    case 'HIGH':
-      return 'priority-high';
-    case 'URGENT':
-      return 'priority-urgent';
-    default:
-      return 'priority-unknown';
+    switch ((priorityCode || '').toUpperCase()) {
+      case 'LOW':
+        return 'priority-low';
+      case 'MEDIUM':
+        return 'priority-medium';
+      case 'HIGH':
+        return 'priority-high';
+      case 'URGENT':
+        return 'priority-urgent';
+      default:
+        return 'priority-unknown';
+    }
   }
-}
 
   ngOnDestroy(): void {
     ++this.taskRequestId;

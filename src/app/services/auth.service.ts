@@ -36,8 +36,7 @@ export class AuthService {
 
   private readonly isBrowser: boolean;
 
-  private readonly userSubject =
-    new BehaviorSubject<UserInfo | null>(null);
+  private readonly userSubject = new BehaviorSubject<UserInfo | null>(null);
 
   readonly user$ = this.userSubject.asObservable();
 

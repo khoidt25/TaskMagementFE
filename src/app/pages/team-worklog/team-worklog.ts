@@ -1,20 +1,7 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  inject
-} from '@angular/core';
-
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-import {
-  finalize,
-  Subscription,
-  timeout
-} from 'rxjs';
-
+import { finalize, Subscription, timeout } from 'rxjs';
 import { TaskWorkLogService } from '../../services/task-work-log.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 

@@ -1,6 +1,5 @@
 <div class="app-layout">
   <app-sidebar></app-sidebar>
-
   <main class="main-content">
     <header class="topbar">
       <div class="breadcrumb">
@@ -83,7 +82,6 @@
         </button>
       </nav>
 
-      <!-- TAB NGƯỜI DÙNG -->
       <section *ngIf="activeTab === 'users'" class="panel">
         <div class="panel-heading">
           <div>
@@ -266,7 +264,6 @@
           </div>
         </div>
 
-        <!-- Chi tiết người dùng -->
         <div *ngIf="selectedUser as user" class="detail-card">
           <div class="panel-heading">
             <div>
@@ -344,7 +341,7 @@
         </div>
 
         <div *ngIf="selectedManagerId" class="assignment-grid">
-          <!-- MEMBER -->
+
           <section class="assignment-column">
             <div class="panel-heading">
               <div>
@@ -409,7 +406,6 @@
             </div>
           </section>
 
-          <!-- PROJECT -->
           <section class="assignment-column">
             <div class="panel-heading">
               <div>
@@ -482,7 +478,6 @@
         </div>
       </section>
 
-      <!-- FORM TẠO TÀI KHOẢN -->
       <section *ngIf="showForm" class="panel form-panel">
         <div class="panel-heading">
           <div>

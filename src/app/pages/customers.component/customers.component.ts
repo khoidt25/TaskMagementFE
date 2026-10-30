@@ -1,21 +1,9 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  inject
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit,inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription, finalize, timeout } from 'rxjs';
-
 import { SidebarComponent } from '../sidebar/sidebar';
-
-import {
-  Customer,
-  CustomerPage,
-  CustomerService
-} from '../../services/customer.service';
+import { Customer, CustomerPage, CustomerService } from '../../services/customer.service';
 
 type CustomerStatus = 'ACTIVE' | 'INACTIVE';
 

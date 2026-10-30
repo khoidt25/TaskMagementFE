@@ -22,10 +22,6 @@
   position: relative;
 }
 
-/* ========================================
-   SIDEBAR
-======================================== */
-
 .member-page > app-sidebar {
   display: block;
   position: relative;
@@ -36,10 +32,6 @@
   z-index: 10000;
   overflow: visible;
 }
-
-/* ========================================
-   MAIN CONTENT
-======================================== */
 
 .member-content {
   position: relative;
@@ -89,10 +81,6 @@
   font-size: 13px;
   line-height: 1.6;
 }
-
-/* ========================================
-   BUTTONS
-======================================== */
 
 .btn {
   display: inline-flex;
@@ -147,10 +135,6 @@
   line-height: 1;
 }
 
-/* ========================================
-   ALERTS
-======================================== */
-
 .alert {
   margin-bottom: 16px;
   padding: 12px 15px;
@@ -170,10 +154,6 @@
   background: #effbf4;
   border-color: #c6efd6;
 }
-
-/* ========================================
-   STATISTICS
-======================================== */
 
 .stats-grid {
   display: grid;
@@ -253,9 +233,6 @@
   font-size: 11px;
 }
 
-/* ========================================
-   PANELS
-======================================== */
 
 .panel {
   width: 100%;
@@ -314,10 +291,6 @@
   font-weight: 700;
   white-space: nowrap;
 }
-
-/* ========================================
-   DAILY WORK LOG
-======================================== */
 
 .worklog-toolbar {
   align-items: flex-end;
@@ -383,10 +356,6 @@
   color: #14865b;
 }
 
-/* ========================================
-   SEARCH AND FILTERS
-======================================== */
-
 .filters {
   display: flex;
   align-items: center;
@@ -436,10 +405,6 @@
   font: inherit;
   font-size: 12px;
 }
-
-/* ========================================
-   TABLES
-======================================== */
 
 .table-wrapper {
   width: 100%;
@@ -651,10 +616,6 @@ input:disabled {
   font-size: 10px;
 }
 
-/* ========================================
-   LOADING AND EMPTY STATES
-======================================== */
-
 .loading-state,
 .empty-state {
   padding: 42px 20px;
@@ -692,10 +653,6 @@ input:disabled {
   line-height: 1.6;
 }
 
-/* ========================================
-   PANEL FOOTER
-======================================== */
-
 .panel-footer {
   justify-content: flex-start;
   padding: 13px 24px;
@@ -704,10 +661,6 @@ input:disabled {
   font-size: 10px;
   line-height: 1.6;
 }
-
-/* ========================================
-   PAGINATION
-======================================== */
 
 .pagination,
 .pagination-bar,
@@ -814,10 +767,6 @@ input:disabled {
   outline-offset: -2px;
 }
 
-/* ========================================
-   RESPONSIVE - TABLET
-======================================== */
-
 @media (max-width: 1200px) {
   .member-page > app-sidebar {
     flex-basis: 220px;
@@ -847,10 +796,6 @@ input:disabled {
     flex: 1 1 0;
   }
 }
-
-/* ========================================
-   RESPONSIVE - SMALL TABLET
-======================================== */
 
 @media (max-width: 900px) {
   .member-page > app-sidebar {
@@ -882,10 +827,6 @@ input:disabled {
     padding: 14px 18px;
   }
 }
-
-/* ========================================
-   RESPONSIVE - MOBILE
-======================================== */
 
 @media (max-width: 640px) {
   .member-page {
@@ -1017,10 +958,6 @@ input:disabled {
     width: 100%;
   }
 }
-
-/* ========================================
-   VERY SMALL MOBILE
-======================================== */
 
 @media (max-width: 380px) {
   .member-content {

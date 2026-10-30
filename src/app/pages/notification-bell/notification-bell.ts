@@ -1,32 +1,9 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ChangeDetectorRef,
-  inject
-} from '@angular/core';
-
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-
-import {
-  Subject,
-  forkJoin,
-  of,
-  timer
-} from 'rxjs';
-
-import {
-  catchError,
-  finalize,
-  switchMap,
-  takeUntil
-} from 'rxjs/operators';
-
-import {
-  AppNotification,
-  NotificationService
-} from '../../services/notification.service';
+import { Subject, forkJoin, of, timer } from 'rxjs';
+import { catchError, finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { AppNotification, NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -36,16 +13,11 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './notification-bell.html',
   styleUrl: './notification-bell.css'
 })
-export class NotificationBellComponent
-  implements OnInit, OnDestroy {
+export class NotificationBellComponent implements OnInit, OnDestroy {
 
-  private readonly notificationService =
-    inject(NotificationService);
-
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
-
   private readonly cdr = inject(ChangeDetectorRef);
-
   private readonly destroy$ = new Subject<void>();
 
   isOpen = false;
@@ -55,11 +27,9 @@ export class NotificationBellComponent
   notifications: AppNotification[] = [];
   unreadCount = 0;
 
-  constructor(private authService: AuthService){
+  constructor(private authService: AuthService) { }
 
-  }
   ngOnInit(): void {
-    // Tải ngay lần đầu, sau đó cập nhật mỗi 20 giây.
     timer(0, 20000)
       .pipe(
         takeUntil(this.destroy$),
@@ -68,14 +38,6 @@ export class NotificationBellComponent
       .subscribe();
   }
 
-  /**
-   * Chuẩn hóa dữ liệu danh sách thông báo.
-   * Hỗ trợ:
-   * - [...]
-   * - { content: [...] }
-   * - { data: [...] }
-   * - { data: { content: [...] } }
-   */
   private extractNotifications(response: any): AppNotification[] {
     if (Array.isArray(response)) {
       return response;
@@ -104,9 +66,6 @@ export class NotificationBellComponent
     return [];
   }
 
-  /**
-   * Chuẩn hóa số lượng thông báo chưa đọc.
-   */
   private extractUnreadCount(response: any): number {
     let value: any = response;
 
@@ -117,20 +76,14 @@ export class NotificationBellComponent
         response.totalUnread ??
         response.data?.unreadCount ??
         response.data?.count ??
-        response.data ??
-        0;
+        response.data ?? 0;
     }
 
     const count = Number(value);
 
-    return Number.isFinite(count)
-      ? Math.max(0, count)
-      : 0;
+    return Number.isFinite(count) ? Math.max(0, count) : 0;
   }
 
-  /**
-   * Tải danh sách thông báo và số chưa đọc.
-   */
   private loadData() {
     this.loading = true;
 
@@ -209,9 +162,6 @@ export class NotificationBellComponent
     );
   }
 
-  /**
-   * Mở hoặc đóng dropdown thông báo.
-   */
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
 
@@ -222,16 +172,10 @@ export class NotificationBellComponent
     }
   }
 
-  /**
-   * Kiểm tra thông báo chưa đọc.
-   */
   isUnread(item: AppNotification): boolean {
     return !(item.isRead ?? item.read ?? false);
   }
 
-  /**
-   * Đánh dấu một thông báo đã đọc.
-   */
   markAsRead(item: AppNotification): void {
     if (!this.isUnread(item)) {
       this.openNotification(item);
@@ -268,9 +212,6 @@ export class NotificationBellComponent
       });
   }
 
-  /**
-   * Đánh dấu tất cả thông báo đã đọc.
-   */
   markAllAsRead(): void {
     if (this.unreadCount === 0) {
       return;
@@ -305,37 +246,29 @@ export class NotificationBellComponent
       });
   }
 
-/**
- * Mở task tương ứng với thông báo.
- */
-openNotification(item: AppNotification): void {
-  this.isOpen = false;
+  openNotification(item: AppNotification): void {
+    this.isOpen = false;
 
-  if (item.taskId == null) {
-    return;
-  }
+    if (item.taskId == null) {
+      return;
+    }
 
-  // Member: chuyển đến Dashboard Member
-  if (this.authService.hasRole('ROLE_MEMBER')) {
-    this.router.navigate(['/member'], {
+    if (this.authService.hasRole('ROLE_MEMBER')) {
+      this.router.navigate(['/member'], {
+        queryParams: {
+          taskId: item.taskId
+        }
+      });
+      return;
+    }
+
+    this.router.navigate(['/tasks'], {
       queryParams: {
         taskId: item.taskId
       }
     });
-    return;
   }
 
-  // Manager: giữ nguyên hành vi hiện tại
-  this.router.navigate(['/tasks'], {
-    queryParams: {
-      taskId: item.taskId
-    }
-  });
-}
-
-  /**
-   * Chuyển loại thông báo thành tiếng Việt.
-   */
   getTypeLabel(type: string): string {
     const labels: Record<string, string> = {
       TASK_ASSIGNED: 'Được giao task',
@@ -361,30 +294,21 @@ openNotification(item: AppNotification): void {
     return labels[type] ?? 'Thông báo';
   }
 
-  /**
-   * CSS class theo loại thông báo.
-   */
   getTypeClass(type: string): string {
     switch (type) {
       case 'DEADLINE_APPROACHING':
       case 'DEADLINE_SOON':
       case 'DEADLINE_UPCOMING':
         return 'notification-deadline-upcoming';
-
       case 'TASK_OVERDUE':
         return 'notification-task-overdue';
-
       case 'TASK_ASSIGNED':
         return 'notification-task-assigned';
-
       default:
         return 'notification-default';
     }
   }
 
-  /**
-   * Tối ưu vòng lặp hiển thị danh sách.
-   */
   trackById(
     index: number,
     item: AppNotification
