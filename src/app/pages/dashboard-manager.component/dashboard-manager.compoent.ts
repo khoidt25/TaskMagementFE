@@ -1,8 +1,8 @@
 
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef, inject, DestroyRef} from '@angular/core';
-import { Router,RouterModule } from '@angular/router';
-import { forkJoin,of } from 'rxjs';
+import { Component, OnInit, ChangeDetectorRef, inject, DestroyRef } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { DashboardManagerService } from '../../services/dashboard-manager.service';
 import { AuthService } from '../../services/auth.service';
@@ -58,11 +58,9 @@ export class DashboardManagerCompoent implements OnInit {
   taskStatus: any = {};
   projectSummary: any[] = [];
 
-  // Thống kê số task của từng Member trong từng Project.
   projectMemberSummary: ProjectMemberSummary[] = [];
   projectMemberSummaryError = '';
 
-  // Các thuộc tính giữ lại để tương thích HTML hiện tại.
   overdueTasks: any[] = [];
   userSummary: any[] = [];
   customerSummary: any[] = [];
@@ -73,13 +71,9 @@ export class DashboardManagerCompoent implements OnInit {
     this.loadUsername();
     this.loadDashboard();
 
-   
+
   }
 
-  /**
-   * Lấy tên người dùng đã lưu sau khi đăng nhập.
-   * Kiểm tra window để tránh lỗi khi chạy Angular SSR.
-   */
   private loadUsername(): void {
     if (typeof window === 'undefined') {
       return;
@@ -95,10 +89,6 @@ export class DashboardManagerCompoent implements OnInit {
     }
   }
 
-  /**
-   * Lấy ID Manager từ localStorage.
-   * Điều chỉnh khóa userId nếu ứng dụng đang lưu bằng tên khác.
-   */
   private getManagerId(): number | null {
     if (typeof window === 'undefined') {
       return null;
@@ -111,10 +101,6 @@ export class DashboardManagerCompoent implements OnInit {
       : null;
   }
 
-  /**
-   * Tải dữ liệu Dashboard Manager.
-   * Các API độc lập: lỗi một API không làm hỏng toàn bộ forkJoin.
-   */
   loadDashboard(): void {
     this.loading = true;
     this.errorMessage = '';
@@ -163,12 +149,12 @@ export class DashboardManagerCompoent implements OnInit {
         ),
 
       customerSummary: this.dashboardManagerService.getCustomerSummary().pipe(
-         catchError((error) => {
-            console.error('Không tải được thống kê khách hàng:',error);
-            return of(null);
-         })
-      ), 
-      // Danh sách task quá hạn theo Manager.
+        catchError((error) => {
+          console.error('Không tải được thống kê khách hàng:', error);
+          return of(null);
+        })
+      ),
+
       overdueTasks: this.dashboardManagerService
         .getOverdueTasks()
         .pipe(
@@ -177,29 +163,27 @@ export class DashboardManagerCompoent implements OnInit {
             return of(null);
           })
         ),
-      
 
-      // Thống kê tổng task của Project và task từng Member.
       projectMemberTaskSummary: managerId !== null
         ? this.dashboardManagerService
-            .getProjectMemberTaskSummary(managerId)
-            .pipe(
-              catchError((error) => {
-                console.error(
-                  'Không tải được thống kê task theo Project và Member:',
-                  error
-                );
+          .getProjectMemberTaskSummary(managerId)
+          .pipe(
+            catchError((error) => {
+              console.error(
+                'Không tải được thống kê task theo Project và Member:',
+                error
+              );
 
-                this.projectMemberSummaryError =
-                  error.status === 403
-                    ? 'Bạn không có quyền xem thống kê Project và Member.'
-                    : error.status === 404
-                      ? 'Không tìm thấy API thống kê Project và Member.'
-                      : 'Không thể tải thống kê Project và Member.';
+              this.projectMemberSummaryError =
+                error.status === 403
+                  ? 'Bạn không có quyền xem thống kê Project và Member.'
+                  : error.status === 404
+                    ? 'Không tìm thấy API thống kê Project và Member.'
+                    : 'Không thể tải thống kê Project và Member.';
 
-                return of(null);
-              })
-            )
+              return of(null);
+            })
+          )
         : of(null)
     })
       .pipe(
@@ -213,16 +197,6 @@ export class DashboardManagerCompoent implements OnInit {
           this.summary = data.summary ?? {};
           this.taskStatus = data.taskStatus ?? {};
 
-          /*
-           * API /statistics/status có thể trả về:
-           * {
-           *   "NOT_STARTED": 2,
-           *   "IN_PROGRESS": 4,
-           *   "PENDING": 1,
-           *   "COMPLETED": 3,
-           *   "CANCELLED": 0
-           * }
-           */
           const statistics = data.statistics;
 
           if (statistics && typeof statistics === 'object') {
@@ -242,34 +216,13 @@ export class DashboardManagerCompoent implements OnInit {
 
           this.customerSummary = this.toArray(data.customerSummary);
 
-          // Hai API này chưa được tích hợp trong DashboardManagerService.
           this.userSummary = [];
-         // this.customerSummary = [];
+          // this.customerSummary = [];
 
-          /*
-           * API trả về:
-           * {
-           *   "managerId": 2,
-           *   "projects": [
-           *     {
-           *       "projectId": 10,
-           *       "projectName": "Project A",
-           *       "totalTasks": 10,
-           *       "members": [
-           *         {
-           *           "memberId": 5,
-           *           "memberName": "Nguyen Van A",
-           *           "totalTasks": 4
-           *         }
-           *       ]
-           *     }
-           *   ]
-           * }
-           */
           const assignmentData =
             data.projectMemberTaskSummary as
-              | ManagerProjectTaskResponse
-              | null;
+            | ManagerProjectTaskResponse
+            | null;
 
           this.projectMemberSummary =
             Array.isArray(assignmentData?.projects)
@@ -310,9 +263,6 @@ export class DashboardManagerCompoent implements OnInit {
       });
   }
 
-  /**
-   * Chuyển dữ liệu thành mảng.
-   */
   private toArray(data: any): any[] {
     if (Array.isArray(data)) {
       return data;
@@ -333,9 +283,6 @@ export class DashboardManagerCompoent implements OnInit {
     return [];
   }
 
-  /**
-   * Lấy giá trị theo nhiều tên thuộc tính.
-   */
   getValue(data: any, ...keys: string[]): any {
     if (!data) {
       return 0;
@@ -434,9 +381,6 @@ export class DashboardManagerCompoent implements OnInit {
     );
   }
 
-  /**
-   * Danh sách trạng thái dùng trong HTML.
-   */
   get statusEntries(): Array<{
     key: string;
     label: string;
@@ -456,9 +400,6 @@ export class DashboardManagerCompoent implements OnInit {
     }));
   }
 
-  /**
-   * Đọc số task từ statusCounts hoặc object trạng thái trực tiếp.
-   */
   statusCount(status: string): number {
     const normalized = String(status ?? '').toUpperCase();
 
@@ -671,31 +612,26 @@ export class DashboardManagerCompoent implements OnInit {
     ) || 0;
   }
 
-  
-customerCompletionRate(customer: any): number {
-  const total = this.customerTaskCount(customer);
 
-  const completed = Number(
-    this.getValue(
-      customer,
-      'completedTasks',
-      'completed',
-      'doneTasks'
-    )
-  ) || 0;
+  customerCompletionRate(customer: any): number {
+    const total = this.customerTaskCount(customer);
 
-  if (total <= 0) {
-    return 0;
+    const completed = Number(
+      this.getValue(
+        customer,
+        'completedTasks',
+        'completed',
+        'doneTasks'
+      )
+    ) || 0;
+
+    if (total <= 0) {
+      return 0;
+    }
+
+    return Math.min(100, Math.round((completed / total) * 100));
   }
 
-  return Math.min(100, Math.round((completed / total) * 100));
-}
-
-
-  /**
-   * Tính số ngày quá hạn.
-   * Không tính công việc đã hoàn thành hoặc đã hủy.
-   */
   getOverdueDays(task: any): number {
     if (!task?.deadline) {
       return 0;
